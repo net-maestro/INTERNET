@@ -43,8 +43,8 @@ acl number 300
   rule 8 deny udp any eq 135 any any ingress any egress any
   rule 9 deny tcp any eq 135 any any ingress any egress any
   rule 10 deny tcp any eq 445 any any ingress any egress any
-  rule 11 deny udp any eq bootps any any ingress any egress any
-  rule 12 deny udp any eq bootpc any any ingress any egress any
+  rule 11 deny udp any eq bootps any any ingress any egress any # BOOTP Server (порт 67 UDP) используется DHCP-сервером для раздачи IP-адресов.
+  rule 12 deny udp any eq bootpc any any ingress any egress any # BOOTP Client (порт 68 UDP) используется DHCP-клиентом для получения адреса от DHCP-сервера.
   rule 13 deny udp any eq 1900 any any ingress any egress any  ! (SSDP)
   rule 14 deny udp any eq 161 any any ingress any egress any  ! (SNMP)
   rule 15 deny tcp any eq 1080 any any ingress any egress any  ! (SOCKS proxy)
