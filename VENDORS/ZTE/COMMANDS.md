@@ -22,7 +22,8 @@ gemport 3 traffic-limit downstream DOWN-5mb
 
 ###ACL на ону :
 ZXAN#configure terminal
-ZXAN(config)#interface gpon-onu_1/1/3:1
-ZXAN(config-if)#ip access-group 300 in
-ZXAN(config-if)#ip access-group 300 out
+ZXAN(config)# interface gpon-onu_1/1/3:1
+ZXAN(config-if)# max-mac-learn 4
+ZXAN(config-if)# ip access-group 300 in
+ZXAN(config-if)# ip access-group 300 out
 
