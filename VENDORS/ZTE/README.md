@@ -54,10 +54,10 @@ acl hybrid number 300
 
 ###ACL на ону :
 ```shell
-ZXAN#configure terminal
-ZXAN(config)#interface gpon-onu_1/1/3:1
-ZXAN(config-if)#ip access-group 300 in
-ZXAN(config-if)#ip access-group 300 out
+>configure terminal
+(config)#interface gpon-onu_1/1/3:1
+(config-if)#ip access-group 300 in
+(config-if)#ip access-group 300 out
 ```
 
 Это ограничит распространение NetBIOS трафика и других потенциально вредоносных пакетов, таких как трафик на порты 445, 135 и 139, которые часто используются для атак.
