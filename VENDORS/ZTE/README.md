@@ -45,6 +45,7 @@ acl hybrid number 300
   rule 14 deny udp any eq 161 any any ingress any egress any  ! (SNMP)
   rule 15 deny tcp any eq 1080 any any ingress any egress any  ! (SOCKS proxy)
   rule 16 deny tcp any eq 3127 any any ingress any egress any  ! (Backdoor port)
+  rule 17 deny tcp any eq telnet any any ingress any egress any
   rule 100 permit any any any any ingress any egress any  ! Default rule to allow traffic
 ```
 
