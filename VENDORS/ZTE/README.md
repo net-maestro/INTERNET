@@ -1,0 +1,73 @@
+# Рекомендации по улучшению конфигурации ZTE C320
+
+Ваш конфигурационный файл представляет собой настройку для устройства ZTE C320 с большим количеством портов и интерфейсов. Он включает настройки VLAN, интерфейсов GPON, профилей ONU и прочее. Вот некоторые рекомендации и предложения по улучшению конфигурации, а также добавление ACL для защиты от вредоносного трафика, включая NetBIOS.
+
+## Безопасность портов и интерфейсов
+
+- Включите защиту от переноса MAC-адресов (MAC address learning) на каждом порту для предотвращения атак, таких как MAC spoofing. Убедитесь, что вы ограничиваете количество MAC-адресов на порту.
+- Рассмотрите возможность включения IP Source Guard (для защиты от подделки IP-адресов на абонентских портах).
+- Настройте защищенные порты для управления, чтобы они не были доступны для всех пользователей.
+
+## Рекомендации по DHCP и DHCP Snooping
+
+- Убедитесь, что вы используете `ip dhcp snooping` для защиты от атак через DHCP (например, атаки "DHCP spoofing").
+- Проверьте правильность настройки `ip-source-guard` и других механизмов защиты DHCP.
+
+## Контроль за трафиком и лимитирование скорости
+
+- Убедитесь, что лимитирование трафика настроено правильно для каждого профиля ONU. Это поможет управлять полосой пропускания и предотвратить перегрузку.
+- Используйте QoS (Quality of Service) для приоритизации важного трафика (например, для VoIP или видео).
+
+## Обновление прошивки
+
+- Проверьте, используете ли вы последнюю версию прошивки и обновления безопасности. На основе конфигурации видно, что вы используете прошивки V1.2.5P3 (2015 года), что может быть устаревшим.
+- Рекомендуется обновить до последней версии для устранения возможных уязвимостей.
+
+## Оптимизация VLAN-конфигурации
+
+- Проведите ревизию VLAN и их назначений, чтобы уменьшить избыточность (например, многие интерфейсы используют идентичные VLAN 1002 или 200, что может быть оптимизировано).
+
+## Добавление ACL для защиты от NetBIOS и вредоносного трафика
+
+Для защиты от NetBIOS (портов 137-139) и других видов вредоносного трафика, включая популярные порты для атак (например, SMB - порт 445), можно использовать следующую ACL:
+
+```shell
+acl number 300
+  rule 1 deny udp any eq 137 any any ingress any egress any
+  rule 2 deny udp any eq 138 any any ingress any egress any
+  rule 3 deny udp any eq 139 any any ingress any egress any
+  rule 4 deny tcp any eq 137 any any ingress any egress any
+  rule 5 deny tcp any eq 138 any any ingress any egress any
+  rule 6 deny tcp any eq 139 any any ingress any egress any
+  rule 7 deny tcp any eq 445 any any ingress any egress any
+  rule 8 deny udp any eq 135 any any ingress any egress any
+  rule 9 deny tcp any eq 135 any any ingress any egress any
+  rule 10 deny tcp any eq 445 any any ingress any egress any
+  rule 11 deny udp any eq bootps any any ingress any egress any
+  rule 12 deny udp any eq bootpc any any ingress any egress any
+  rule 13 deny udp any eq 1900 any any ingress any egress any  ! (SSDP)
+  rule 14 deny udp any eq 161 any any ingress any egress any  ! (SNMP)
+  rule 15 deny tcp any eq 1080 any any ingress any egress any  ! (SOCKS proxy)
+  rule 16 deny tcp any eq 3127 any any ingress any egress any  ! (Backdoor port)
+  rule 100 permit any any any any ingress any egress any  ! Default rule to allow traffic
+```
+
+### Применение ACL
+
+После того как ACL добавлены, примените их к соответствующим интерфейсам:
+
+```shell
+interface gpon-olt_1/1/1
+  acl inbound 300
+  acl outbound 300
+```
+
+Это ограничит распространение NetBIOS трафика и других потенциально вредоносных пакетов, таких как трафик на порты 445, 135 и 139, которые часто используются для атак.
+
+## Дополнительные рекомендации
+
+- **Обновление SNMP**: Настройте SNMP для мониторинга устройства, но ограничьте доступ только из доверенных IP-адресов.
+- **Логи**: Убедитесь, что на устройстве настроены логи для всех важных событий безопасности, чтобы быстро реагировать на подозрительные активности.
+
+Эти изменения помогут улучшить безопасность сети, уменьшить возможности для атак и повысить производительность устройства.
+
