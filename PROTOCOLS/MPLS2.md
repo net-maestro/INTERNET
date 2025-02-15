@@ -36,10 +36,9 @@
    add interface=ether1
    add interface=ether2
    ...
+
+
+```
 Включаем LDP и указываем транзитные интерфейсы
 LDP (Label Distribution Protocol) отвечает за автоматическое формирование меток и их обмен между соседями.
-/mpls ldp
-set enabled=yes lsr-id=1.1.1.1 transport-address=1.1.1.1
-/mpls ldp interface
-add interface=ether1
-add interface=ether2
+```
