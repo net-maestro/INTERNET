@@ -112,8 +112,7 @@ add dhcp-server=192.168.1.1 interface=vlan100 name=relay1
 ### Конфигурация D-Link DES-1228ME:
 ```shell
 config vlan 100 add tagged 1-24
-config ipif System dhcp relay state enable
-config ipif System dhcp relay server ip-address 192.168.1.1
+config dhcp_relay add vlan 100 state enable server 192.168.1.1
 config save
 ```
 
