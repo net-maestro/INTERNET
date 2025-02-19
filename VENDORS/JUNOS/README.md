@@ -74,6 +74,40 @@ show bgp summary
 show route protocol bgp
 ```
 
+## Проверка назначенных фильтров BGP в Junos
+
+## Просмотр назначенных import/export политик для BGP
+```sh
+show configuration protocols bgp | display set | match "policy|import|export"
+```
+
+## Проверка применяемых фильтров для конкретного соседа
+```sh
+show bgp neighbor <IP-адрес> | match "Import|Export"
+```
+
+## Просмотр содержимого политики фильтрации
+```sh
+show policy | match "<policy-name>"
+```
+
+## Просмотр всех настроенных политик фильтрации
+```sh
+show configuration policy-options
+```
+
+## Проверка получаемых маршрутов от конкретного соседа
+```sh
+show route receive-protocol bgp <IP-адрес>
+```
+
+## Проверка рекламируемых маршрутов конкретному соседу
+```sh
+show route advertising-protocol bgp <IP-адрес>
+```
+
+
+
 ---
 
 ## 2. SET команды
