@@ -107,6 +107,61 @@ show route advertising-protocol bgp <IP-адрес>
 ```
 
 
+## Проверка настроек DHCP в Junos
+
+## Просмотр текущей конфигурации DHCP
+```sh
+show configuration system services dhcp
+```
+
+## Проверка состояния DHCP-сервера
+```sh
+show system services dhcp binding
+```
+
+## Просмотр активных DHCP-аренд
+```sh
+show dhcp server binding
+```
+
+## Проверка полученных DHCP-запросов
+```sh
+show dhcp relay statistics
+```
+
+## Просмотр переданных DHCP-запросов
+```sh
+show dhcp relay binding
+```
+
+## Проверка статуса DHCP-клиента
+```sh
+show dhcp client binding
+```
+
+## Просмотр информации о подписчиках
+```sh
+show subscribers
+```
+
+## Расширенная информация о подписчиках
+```sh
+show subscribers extensive
+```
+
+## Просмотр подписчиков по DHCP
+```sh
+show subscribers dhcp
+```
+
+## Проверка подписчиков на определённом интерфейсе
+```sh
+show subscribers interface <interface-name>
+```
+
+
+
+
 
 ---
 
