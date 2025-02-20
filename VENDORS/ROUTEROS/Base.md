@@ -2,6 +2,23 @@
 
 ## IPv4 Firewall Rules (Правила для IPv4)
 
+#### Сами правила
+
+```bash
+/ip firewall filter
+add action=passthrough chain=forward comment="COUNT DNS QUERY" disabled=yes dst-port=53 protocol=udp
+add action=accept chain=input comment="INPUT (established,related) ACCEPT" connection-state=established,related
+add action=drop chain=input comment="INPUT (invalid) DROP" connection-state=invalid
+add action=accept chain=forward comment="FORWARD (established,related) ACCEPT" connection-state=established,related
+add action=drop chain=forward comment="FORWARD (invalid) DROP" connection-state=invalid
+add action=accept chain=input comment="INPUT ALLOW ICMP( limit=300/10s,50:packet)" limit=300/10s,50:packet protocol=icmp
+add action=drop chain=input comment="INPUT DROP ICMP FLOOD" protocol=icmp
+add action=drop chain=input comment="INPUT DNS DROP" dst-port=53 protocol=udp
+add action=add-src-to-address-list address-list=temporary_blocked_ips address-list-timeout=2h chain=input comment="INPUT ADD LIST (temporary_blocked_ips) SCAN PORTS" dst-port=22,23,53,80,2000,8292 protocol=tcp src-address-list=!allowed_ips
+add action=accept chain=input comment="INPUT ACCEPT IPs" src-address-list=allow_ips
+add action=reject chain=input comment="INPUT BLOCK IPs" protocol=tcp reject-with=tcp-reset src-address-list=temporary_blocked_ips
+```
+
 ### 1. Forward Chain (Цепочка FORWARD)
 
 #### COUNT DNS QUERY *(Отключено)*
@@ -67,25 +84,9 @@
 ## IPv6 Firewall Rules (Правила для IPv6)
 - **Тоже самое но с большими лимитами на ICMPV6 так как IPV6 зависим от ICMP**
 
----
-
 #### Сами правила
 
 ```bash
-/ip firewall filter
-add action=passthrough chain=forward comment="COUNT DNS QUERY" disabled=yes dst-port=53 protocol=udp
-add action=accept chain=input comment="INPUT (established,related) ACCEPT" connection-state=established,related
-add action=drop chain=input comment="INPUT (invalid) DROP" connection-state=invalid
-add action=accept chain=forward comment="FORWARD (established,related) ACCEPT" connection-state=established,related
-add action=drop chain=forward comment="FORWARD (invalid) DROP" connection-state=invalid
-add action=accept chain=input comment="INPUT ALLOW ICMP( limit=300/10s,50:packet)" limit=300/10s,50:packet protocol=icmp
-add action=drop chain=input comment="INPUT DROP ICMP FLOOD" protocol=icmp
-add action=drop chain=input comment="INPUT DNS DROP" dst-port=53 protocol=udp
-add action=add-src-to-address-list address-list=temporary_blocked_ips address-list-timeout=2h chain=input comment="INPUT ADD LIST (temporary_blocked_ips) SCAN PORTS" dst-port=22,23,53,80,2000,8292 protocol=tcp src-address-list=!allowed_ips
-add action=accept chain=input comment="INPUT ACCEPT IPs" src-address-list=allow_ips
-add action=reject chain=input comment="INPUT BLOCK IPs" protocol=tcp reject-with=tcp-reset src-address-list=temporary_blocked_ips
-
-
 /ipv6 firewall filter
 add action=passthrough chain=forward comment="COUNT DNS QUERY v6" disabled=yes dst-port=53 protocol=udp
 add action=accept chain=input comment="INPUT (established,related) ACCEPT" connection-state=established,related
@@ -98,9 +99,9 @@ add action=drop chain=input comment="INPUT DNS DROP v6" dst-port=53 protocol=udp
 add action=add-src-to-address-list address-list=temporary_blocked_ips_v6 address-list-timeout=2h chain=input comment="INPUT ADD LIST (temporary_blocked_ips_v6) SCAN PORTS" dst-port=22,23,53,80,2000,8292 protocol=tcp src-address-list=!allow_ips_v6
 add action=accept chain=input comment="INPUT ACCEPT allow_ips_v6" src-address-list=allow_ips_v6
 add action=reject chain=input comment="INPUT BLOCK IPs v6" protocol=tcp reject-with=tcp-reset src-address-list=temporary_blocked_ips_v6
-
 ```
 
+---
 
 ## Вывод
 Данные правила обеспечивают безопасность сети за счёт фильтрации трафика, предотвращения DDoS-атак и защиты от сканирования портов. Ограничения на ICMP помогают избежать перегрузки сети, а временная блокировка подозрительных IP-адресов снижает риск атак.
