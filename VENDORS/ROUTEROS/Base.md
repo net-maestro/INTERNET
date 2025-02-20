@@ -1,103 +1,157 @@
-## Настройка MikroTik RouterOS для интернет-провайдера (5000 абонентов)
+# MikroTik Firewall Filter Rules (Правила файрвола)
 
-## 1. Обработка трафика с использованием Connection Tracking
+## IPv4 Firewall Rules (Правила для IPv4)
 
-Используем Connection Tracking для отслеживания состояния соединений (Established, Related, Invalid). Это повышает безопасность и эффективность маршрутизации.
+### 1. Forward Chain (Цепочка FORWARD)
 
-```shell
+#### COUNT DNS QUERY *(Отключено)*
+- **Действие**: passthrough (пропуск)
+- **Цепочка**: forward (пересылаемый трафик)
+- **Комментарий**: Подсчёт DNS-запросов
+- **Порт назначения**: 53
+- **Протокол**: UDP
+- **Статус**: Отключено
+- **Назначение**: Данное правило не блокирует или разрешает трафик, а только подсчитывает количество DNS-запросов.
+
+### 2. Input Chain (Цепочка INPUT)
+
+#### INPUT (established,related) ACCEPT *(Разрешение установленных соединений)*
+- **Действие**: accept (разрешить)
+- **Состояние соединения**: established, related
+- **Назначение**: Разрешает пакеты, относящиеся к уже установленным или связанным соединениям.
+
+#### INPUT (invalid) DROP *(Блокировка недопустимых пакетов)*
+- **Действие**: drop (отбросить)
+- **Состояние соединения**: invalid
+- **Назначение**: Блокирует пакеты с некорректным состоянием, что помогает защитить сеть от атак и некорректного трафика.
+
+#### INPUT ALLOW ICMP *(Ограниченный доступ для ICMP)*
+- **Действие**: accept (разрешить)
+- **Протокол**: ICMP
+- **Ограничение**: 300 пакетов за 10 секунд, burst 50 пакетов
+- **Назначение**: Разрешает ICMP-запросы (например, `ping`), но с ограничением на частоту. **Burst** означает, что в момент пикового трафика сначала разрешается до 50 пакетов, а затем действует ограничение 300 пакетов за 10 секунд.
+
+#### INPUT DROP ICMP FLOOD *(Блокировка ICMP-флуда)*
+- **Действие**: drop (отбросить)
+- **Протокол**: ICMP
+- **Назначение**: Блокирует ICMP-трафик, если он превышает допустимый лимит (анти-DDoS защита).
+
+#### INPUT DNS DROP *(Блокировка DNS-запросов к роутеру)*
+- **Действие**: drop (отбросить)
+- **Порт назначения**: 53
+- **Протокол**: UDP
+- **Назначение**: Блокирует входящие DNS-запросы, что предотвращает использование роутера в DNS-атаках.
+
+#### INPUT ADD LIST (temporary_blocked_ips) SCAN PORTS *(Блокировка IP-адресов за сканирование портов)*
+- **Действие**: add-src-to-address-list (добавить источник в список)
+- **Список**: temporary_blocked_ips (время блокировки: 2 часа)
+- **Порты назначения**: 22, 23, 53, 80, 2000, 8292
+- **Протокол**: TCP
+- **Список источников**: Исключены `allowed_ips`
+- **Назначение**: Добавляет IP-адреса, сканирующие определённые порты, в список временно заблокированных.
+
+#### INPUT ACCEPT IPs *(Разрешённые IP-адреса)*
+- **Действие**: accept (разрешить)
+- **Список источников**: allow_ips
+- **Назначение**: Разрешает трафик от доверенных IP-адресов.
+
+#### INPUT BLOCK IPs *(Блокировка IP-адресов из списка)*
+- **Действие**: reject (отклонить)
+- **Протокол**: TCP
+- **Метод отклонения**: TCP Reset
+- **Список источников**: temporary_blocked_ips
+- **Назначение**: Отклоняет соединения от временно заблокированных IP с возвратом TCP Reset.
+
+---
+
+## IPv6 Firewall Rules (Правила для IPv6)
+
+### 1. Forward Chain (Цепочка FORWARD)
+
+#### COUNT DNS QUERY v6 *(Отключено)*
+- **Действие**: passthrough
+- **Цепочка**: forward
+- **Комментарий**: Подсчёт DNS-запросов IPv6
+- **Порт назначения**: 53
+- **Протокол**: UDP
+- **Статус**: Отключено
+
+### 2. Input Chain (Цепочка INPUT)
+
+#### INPUT (established,related) ACCEPT *(Разрешение установленных соединений)*
+- **Действие**: accept
+- **Состояние соединения**: established, related
+
+#### INPUT (invalid) DROP *(Блокировка некорректных пакетов)*
+- **Действие**: drop
+- **Состояние соединения**: invalid
+
+#### INPUT ALLOW ICMPv6 *(Разрешение ICMPv6 с ограничением)*
+- **Действие**: accept
+- **Протокол**: ICMPv6
+- **Ограничение**: 1000 пакетов за 10 секунд, burst 100 пакетов
+
+#### INPUT DROP ICMPv6 FLOOD *(Блокировка ICMPv6-флуда)*
+- **Действие**: drop
+- **Протокол**: ICMPv6
+
+#### INPUT DNS DROP v6 *(Блокировка DNS-запросов IPv6)*
+- **Действие**: drop
+- **Порт назначения**: 53
+- **Протокол**: UDP
+
+#### INPUT ADD LIST (temporary_blocked_ips_v6) SCAN PORTS *(Блокировка IPv6-адресов за сканирование портов)*
+- **Действие**: add-src-to-address-list
+- **Список**: temporary_blocked_ips_v6 (время блокировки: 2 часа)
+- **Порты назначения**: 22, 23, 53, 80, 2000, 8292
+- **Протокол**: TCP
+- **Список источников**: Исключены `allow_ips_v6`
+
+#### INPUT ACCEPT allow_ips_v6 *(Разрешение доверенных IPv6-адресов)*
+- **Действие**: accept
+- **Список источников**: allow_ips_v6
+
+#### INPUT BLOCK IPs v6 *(Блокировка временно заблокированных IPv6-адресов)*
+- **Действие**: reject
+- **Протокол**: TCP
+- **Метод отклонения**: TCP Reset
+- **Список источников**: temporary_blocked_ips_v6
+
+---
+
+#### Сами правила
+
+```bash
 /ip firewall filter
-add chain=input action=accept connection-state=established,related log=no
-add chain=input action=drop connection-state=invalid log=no
-add chain=forward action=accept connection-state=established,related log=no
-add chain=forward action=drop connection-state=invalid log=no
+add action=passthrough chain=forward comment="COUNT DNS QUERY" disabled=yes dst-port=53 protocol=udp
+add action=accept chain=input comment="INPUT (established,related) ACCEPT" connection-state=established,related
+add action=drop chain=input comment="INPUT (invalid) DROP" connection-state=invalid
+add action=accept chain=forward comment="FORWARD (established,related) ACCEPT" connection-state=established,related
+add action=drop chain=forward comment="FORWARD (invalid) DROP" connection-state=invalid
+add action=accept chain=input comment="INPUT ALLOW ICMP( limit=300/10s,50:packet)" limit=300/10s,50:packet protocol=icmp
+add action=drop chain=input comment="INPUT DROP ICMP FLOOD" protocol=icmp
+add action=drop chain=input comment="INPUT DNS DROP" dst-port=53 protocol=udp
+add action=add-src-to-address-list address-list=temporary_blocked_ips address-list-timeout=2h chain=input comment="INPUT ADD LIST (temporary_blocked_ips) SCAN PORTS" dst-port=22,23,53,80,2000,8292 protocol=tcp src-address-list=!allowed_ips
+add action=accept chain=input comment="INPUT ACCEPT IPs" src-address-list=allow_ips
+add action=reject chain=input comment="INPUT BLOCK IPs" protocol=tcp reject-with=tcp-reset src-address-list=temporary_blocked_ips
+
+
+/ipv6 firewall filter
+add action=passthrough chain=forward comment="COUNT DNS QUERY v6" disabled=yes dst-port=53 protocol=udp
+add action=accept chain=input comment="INPUT (established,related) ACCEPT" connection-state=established,related
+add action=drop chain=input comment="INPUT (invalid) DROP" connection-state=invalid
+add action=accept chain=forward comment="FORWARD (established,related) ACCEPT" connection-state=established,related
+add action=drop chain=forward comment="FORWARD (invalid) DROP" connection-state=invalid
+add action=accept chain=input comment="INPUT ALLOW ICMPv6 (limit=1000/10s,100:packet)" limit=1k/10s,100:packet protocol=icmpv6
+add action=drop chain=input comment="INPUT DROP ICMPv6 FLOOD" protocol=icmpv6
+add action=drop chain=input comment="INPUT DNS DROP v6" dst-port=53 protocol=udp
+add action=add-src-to-address-list address-list=temporary_blocked_ips_v6 address-list-timeout=2h chain=input comment="INPUT ADD LIST (temporary_blocked_ips_v6) SCAN PORTS" dst-port=22,23,53,80,2000,8292 protocol=tcp src-address-list=!allow_ips_v6
+add action=accept chain=input comment="INPUT ACCEPT allow_ips_v6" src-address-list=allow_ips_v6
+add action=reject chain=input comment="INPUT BLOCK IPs v6" protocol=tcp reject-with=tcp-reset src-address-list=temporary_blocked_ips_v6
+
 ```
 
-## 2. Ограничение ICMP-трафика
 
-Разрешаем ICMP-трафик, но с ограничением по количеству пакетов в секунду, чтобы избежать злоупотреблений (например, ICMP-флуд).
+## Вывод
+Данные правила обеспечивают безопасность сети за счёт фильтрации трафика, предотвращения DDoS-атак и защиты от сканирования портов. Ограничения на ICMP помогают избежать перегрузки сети, а временная блокировка подозрительных IP-адресов снижает риск атак.
 
-```shell
-/ip firewall filter
-add chain=input action=accept protocol=icmp in-interface-list=<WAN_Interface> limit=50/5s,2:packet log=no
-```
-
-## 3. Масштабируемость и управление трафиком
-
-### Ограничение скорости (Rate Limiting)
-Настроим ограничение скорости на интерфейсах или для отдельных абонентов с использованием Queues.
-
-### Очереди (Queues)
-Используем очереди для управления пропускной способностью.
-
-### Фильтрация по MAC-адресам
-Настроим фильтрацию по MAC-адресам для предотвращения спуфинга.
-
-### Логирование
-Включаем логирование для критически важных правил.
-
-## 4. Оптимизация для большого числа абонентов
-
-### FastTrack
-Включаем FastTrack для ускорения обработки трафика.
-
-```shell
-/ip firewall filter
-add chain=forward action=fasttrack-connection connection-state=established,related
-```
-
-### Увеличение размера таблицы соединений
-
-```shell
-/ip firewall connection/tracking set enabled=yes table-size=65536
-```
-
-## 5. Безопасность
-
-### Защита от DDoS
-Настраиваем правила для защиты от DDoS-атак.
-
-### Фильтрация по гео-IP
-Используем списки IP-адресов для блокировки трафика из подозрительных регионов.
-
-### Ограничение доступа к управлению маршрутизатором
-
-```shell
-/ip firewall filter
-add action=accept chain=input src-address-list=allow_ips comment="Разрешенные IP для управления"
-add action=reject chain=input protocol=tcp reject-with=tcp-reset src-address-list=temporary_blocked_ips comment="Блокировка временно заблокированных IP"
-```
-
-## 6. Мониторинг и управление
-
-### SNMP
-Настраиваем SNMP для мониторинга состояния маршрутизатора.
-
-### Логирование DNS-запросов
-
-```shell
-/ip firewall filter
-add action=passthrough chain=forward comment="Подсчет DNS-запросов" dst-port=53 protocol=udp
-```
-
-### Ограничение ICMP-запросов
-
-```shell
-/ip firewall filter
-add action=add-src-to-address-list address-list=allowed_ips address-list-timeout=10m chain=input comment="Добавление в список разрешенных, если 5 ICMP-пакетов с размером 8328" limit=5,5:packet packet-size=8328 protocol=icmp
-add action=accept chain=input comment="Разрешение ICMP размером 8328" icmp-options=8:0 packet-size=8328 protocol=icmp
-add action=drop chain=input comment="Блокировка ICMP-запросов от неразрешенных IP" protocol=icmp src-address-list=!allowed_ips
-```
-
-### Защита от сканирования портов
-
-```shell
-/ip firewall filter
-add action=add-src-to-address-list address-list=temporary_blocked_ips address-list-timeout=2h chain=input comment="Добавление в блок-лист при попытке сканирования портов" dst-port=22,23,53,80,2000,8292 protocol=tcp src-address-list=!allowed_ips
-```
-
-### Фильтрация DNS-запросов
-
-```shell
-/ip firewall filter
-add action=drop chain=input comment="Блокировка DNS-запросов" dst-port=53 protocol=udp
-```
