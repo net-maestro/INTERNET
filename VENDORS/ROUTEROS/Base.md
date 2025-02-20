@@ -101,6 +101,27 @@ add action=accept chain=input comment="INPUT ACCEPT allow_ips_v6" src-address-li
 add action=reject chain=input comment="INPUT BLOCK IPs v6" protocol=tcp reject-with=tcp-reset src-address-list=temporary_blocked_ips_v6
 ```
 
+
+
+## Для IPv6 стоит действовать ещё аккуратнее. Многие ключевые функции (автоматическая настройка адресов, определение соседей, Router Advertisement и др.) завязаны на ICMPv6. 
+## Если слишком жёстко «закрутить гайки», вы рискуете отрезать абонентам IPv6. Поэтому, как минимум, нужно:
+
+- **Разрешить Neighbor Discovery трафик (типы 135, 136), Router Solicitation (133), Router Advertisement (134), а иногда и Redirect (137), если используется.**
+
+- **Если вы решите применять лимит на весь ICMPv6, желательно отдельными правилами оставить без лимита (или с более мягкими лимитами) те типы ICMPv6, которые критичны для работы IPv6:**
+```bash
+# Примерно так:
+/ipv6 firewall filter
+add chain=input protocol=icmpv6 icmp-options=135:0-255 action=accept comment="Accept ND (Neighbor Solicitation)"
+add chain=input protocol=icmpv6 icmp-options=136:0-255 action=accept comment="Accept ND (Neighbor Advertisement)"
+add chain=input protocol=icmpv6 icmp-options=133:0-255 action=accept comment="Accept Router Solicitation"
+add chain=input protocol=icmpv6 icmp-options=134:0-255 action=accept comment="Accept Router Advertisement"
+# и т.д.
+
+# А уже потом — общее правило на лимит
+add chain=input protocol=icmpv6 limit=1000/5s,100 action=accept comment="Allow other ICMPv6 with limit"
+add chain=input protocol=icmpv6 action=drop comment="Drop the rest (flood)"
+```
 ---
 
 ## Вывод
