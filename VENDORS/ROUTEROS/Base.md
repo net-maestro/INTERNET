@@ -4,8 +4,13 @@
 
 #### Сами правила
 
+# Оптимизация трафика в MikroTik с FastTrack
+
+## Описание правила
+
 ```bash
 /ip firewall filter
+add action=fasttrack-connection chain=forward connection-state=established,related hw-offload=yes
 add action=passthrough chain=forward comment="COUNT DNS QUERY" disabled=yes dst-port=53 protocol=udp
 add action=accept chain=input comment="INPUT (established,related) ACCEPT" connection-state=established,related
 add action=drop chain=input comment="INPUT (invalid) DROP" connection-state=invalid
@@ -18,6 +23,35 @@ add action=add-src-to-address-list address-list=temporary_blocked_ips address-li
 add action=accept chain=input comment="INPUT ACCEPT IPs" src-address-list=allow_ips
 add action=reject chain=input comment="INPUT BLOCK IPs" protocol=tcp reject-with=tcp-reset src-address-list=temporary_blocked_ips
 ```
+
+## Разбор параметров FastTrack
+
+- **action=fasttrack-connection** – включает FastTrack для определённых соединений, ускоряя их обработку.
+- **chain=forward** – правило применяется к транзитному трафику (трафик, проходящий через маршрутизатор).
+- **connection-state=established,related**:
+  - **established** – уже установленное соединение.
+  - **related** – соединение, связанное с установленным (например, вторичные подключения FTP, ICMP-ответы).
+- **hw-offload=yes** – если оборудование поддерживает аппаратное ускорение, пакеты будут обрабатываться на уровне железа (ASIC/чип).
+
+## Преимущества
+
+- **Снижение нагрузки на CPU** – пакеты проходят быстрее, минуя часть обработки на процессоре.
+- **Увеличение пропускной способности** – полезно для гигабитных и выше соединений.
+- **Оптимизация трафика** – ускоренная передача пакетов без задержек.
+
+## Ограничения и предупреждения
+
+Перед включением FastTrack необходимо учитывать:
+
+- **Не совместим с очередями (Queue)** – FastTrack обходит QoS и ограничение скорости.
+- **Не работает с IPsec** – пакеты, использующие FastTrack, могут игнорировать политики шифрования.
+- **Может конфликтовать с правилами Mangle** – если используется маркировка трафика, FastTrack её обходит.
+
+## Вывод
+
+FastTrack – мощный инструмент для ускорения работы маршрутизатора MikroTik, но перед его включением стоит убедиться, что он не нарушает вашу политику управления трафиком.
+
+
 
 ### 1. Forward Chain (Цепочка FORWARD)
 
@@ -88,6 +122,7 @@ add action=reject chain=input comment="INPUT BLOCK IPs" protocol=tcp reject-with
 
 ```bash
 /ipv6 firewall filter
+add action=fasttrack-connection chain=forward connection-state=established,related hw-offload=yes
 add action=passthrough chain=forward comment="COUNT DNS QUERY v6" disabled=yes dst-port=53 protocol=udp
 add action=accept chain=input comment="INPUT (established,related) ACCEPT" connection-state=established,related
 add action=drop chain=input comment="INPUT (invalid) DROP" connection-state=invalid
