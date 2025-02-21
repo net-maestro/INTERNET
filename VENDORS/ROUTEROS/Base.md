@@ -4,10 +4,6 @@
 
 #### Сами правила
 
-# Оптимизация трафика в MikroTik с FastTrack
-
-## Описание правила
-
 ```bash
 /ip firewall filter
 add action=fasttrack-connection chain=forward connection-state=established,related hw-offload=yes
