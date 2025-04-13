@@ -29,3 +29,13 @@
 /ipv6 address add address=2a0f:8fc2:3:0000::1/56 interface=vlan1
 /ipv6 pool add name=vlan1-pool prefix=2a0f:8fc2:3:0000::/56 prefix-length=60
 /ipv6 dhcp-server add interface=vlan1 address-pool=vlan1-pool lease-time=1d
+
+
+
+| №   | Подсеть /56               | Диапазон адресов                     | Количество /60 |
+|-----|---------------------------|--------------------------------------|----------------|
+| 1   | 2a0f:8fc2:3:0000::/56     | 2a0f:8fc2:3:0000:: - 2a0f:8fc2:3:00ff:: | 256            |
+| 2   | 2a0f:8fc2:3:0100::/56     | 2a0f:8fc2:3:0100:: - 2a0f:8fc2:3:01ff:: | 256            |
+| 3   | 2a0f:8fc2:3:0200::/56     | 2a0f:8fc2:3:0200:: - 2a0f:8fc2:3:02ff:: | 256            |
+| ... | ...                       | ...                                  | ...            |
+| 128 | 2a0f:8fc2:3:7f00::/56    | 2a0f:8fc2:3:7f00:: - 2a0f:8fc2:3:7fff:: | 256            |
