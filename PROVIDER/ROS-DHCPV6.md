@@ -1,6 +1,6 @@
 # Конфигурация раздачи IPv6 по DHCPv6 на R1 и SLAAC на R2
 ## R1 --->  R2
----
+
 
 ## R1
 
@@ -23,9 +23,10 @@ add code=23 name=DNS3 value="'2606:4700:4700::1111'"
 
 /ipv6 dhcp-server
 add dhcp-option=DNS1,DNS2,DNS3 interface=bridge lease-time=2h name=bridge prefix-pool=internet use-reconfigure=yes
-
+```
 
 ## R2
+```bash
 /ipv6 address
 add address=::/60 advertise=no from-pool=internet interface=bridge
 
@@ -38,5 +39,4 @@ add code=23 name=DNS value="'2606:4700:4700::1111'"
 
 /ipv6 dhcp-server
 add address-pool=internet dhcp-option=DNS interface=bridge lease-time=1h name=server1
-
 ```
