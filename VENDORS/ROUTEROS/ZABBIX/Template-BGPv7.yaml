@@ -1,0 +1,133 @@
+zabbix_export:
+  version: '6.0'
+  date: '2025-04-26T00:00:00Z'
+  groups:
+    - name: RouterOSv7
+  templates:
+    - template: 'BGP Monitoring - MikroTik RouterOSv7'
+      name: 'BGP Monitoring - MikroTik RouterOSv7'
+      groups:
+        - name: RouterOSv7
+      items:
+        - name: 'BGP Sessions - Full JSON'
+          type: EXTERNAL
+          key: 'bgpRosV7.py[{$API_USER},{$API_PASS},{$HOST_IP},{$API_PORT}]'
+          delay: 2m
+          history: 5d
+          trends: '0'
+          value_type: TEXT
+          tags:
+            - tag: Application
+              value: RawJSON
+      discovery_rules:
+        - name: 'BGP Peer Discovery'
+          type: DEPENDENT
+          key: bgp.discovery
+          delay: '0'
+          lifetime: 3d
+          item_prototypes:
+            - name: 'Peer [{#NAME}] - Uptime'
+              type: DEPENDENT
+              key: 'bgp.peer.uptime[{#IP}]'
+              delay: '0'
+              history: 30d
+              trends: 90d
+              units: uptime
+              value_type: UNSIGNED
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$[?(@.IP == "{#IP}")].UPTIME.first()'
+              master_item:
+                key: 'bgpRosV7.py[{$API_USER},{$API_PASS},{$HOST_IP},{$API_PORT}]'
+              tags:
+                - tag: BGP
+                  value: Uptime
+
+            - name: 'Peer [{#NAME}] - Status'
+              type: DEPENDENT
+              key: 'bgp.peer.status[{#IP}]'
+              delay: '0'
+              history: 30d
+              trends: 90d
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$[?(@.IP == "{#IP}")].STATUS.first()'
+              master_item:
+                key: 'bgpRosV7.py[{$API_USER},{$API_PASS},{$HOST_IP},{$API_PORT}]'
+              valuemap:
+                name: 'Peer Status Map'
+              tags:
+                - tag: BGP
+                  value: Status
+
+            - name: 'Peer [{#NAME}] - ASN'
+              type: DEPENDENT
+              key: 'bgp.peer.asn[{#IP}]'
+              delay: '0'
+              history: 30d
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$[?(@.IP == "{#IP}")].AS.first()'
+              master_item:
+                key: 'bgpRosV7.py[{$API_USER},{$API_PASS},{$HOST_IP},{$API_PORT}]'
+              tags:
+                - tag: BGP
+                  value: ASN
+
+            - name: 'Peer [{#NAME}] - Messages'
+              type: DEPENDENT
+              key: 'bgp.peer.messages[{#IP}]'
+              delay: '0'
+              history: 30d
+              trends: 90d
+              value_type: UNSIGNED
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$[?(@.IP == "{#IP}")].MESSAGES.first()'
+              master_item:
+                key: 'bgpRosV7.py[{$API_USER},{$API_PASS},{$HOST_IP},{$API_PORT}]'
+              tags:
+                - tag: BGP
+                  value: Messages
+
+          trigger_prototypes:
+            - name: 'BGP Peer [{#NAME}] DOWN'
+              expression: 'last(/BGP Monitoring - MikroTik RouterOSv7/bgp.peer.status[{#IP}])=0'
+              priority: HIGH
+              manual_close: 'YES'
+              tags:
+                - tag: BGP
+                  value: DOWN
+
+          master_item:
+            key: 'bgpRosV7.py[{$API_USER},{$API_PASS},{$HOST_IP},{$API_PORT}]'
+          lld_macro_paths:
+            - lld_macro: '{#IP}'
+              path: $.IP
+            - lld_macro: '{#NAME}'
+              path: $.NAME
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.[:]'
+      macros:
+        - macro: '{$API_PORT}'
+          value: '8728'
+        - macro: '{$API_USER}'
+          value: 'admin'
+        - macro: '{$API_PASS}'
+          value: 'admin'
+        - macro: '{$HOST_IP}'
+          value: '127.0.0.1'
+      valuemaps:
+        - name: 'Peer Status Map'
+          mappings:
+            - value: '0'
+              newvalue: 'DOWN'
+            - value: '1'
+              newvalue: 'UP'
