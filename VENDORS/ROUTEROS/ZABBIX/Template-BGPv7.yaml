@@ -2,132 +2,94 @@ zabbix_export:
   version: '6.0'
   date: '2025-04-26T00:00:00Z'
   groups:
-    - name: RouterOSv7
+    - uuid: '6ee1cfd3-0dfc-4e49-93b4-9831bfa1f637'
+      name: RouterOSv7
   templates:
-    - template: 'BGP Monitoring - MikroTik RouterOSv7'
-      name: 'BGP Monitoring - MikroTik RouterOSv7'
+    - uuid: 'df3a79e8-594d-11ef-b9a5-8b8d9432b5c5'
+      template: 'BGP Monitoring MikroTik RouterOSv7'
+      name: 'BGP Monitoring MikroTik RouterOSv7'
       groups:
         - name: RouterOSv7
       items:
-        - name: 'BGP Sessions - Full JSON'
-          type: EXTERNAL
+        - uuid: '19e85110-72a0-4e58-9b9d-6b08f7a51f6b'
+          name: 'Fetch BGP Neighbors Data'
           key: 'bgpRosV7.py[{$API_USER},{$API_PASS},{$HOST_IP},{$API_PORT}]'
-          delay: 2m
-          history: 5d
-          trends: '0'
+          type: ZABBIX_ACTIVE
           value_type: TEXT
+          delay: '30s'
+          description: 'Fetch BGP neighbor raw data from RouterOSv7'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[*]'
           tags:
             - tag: Application
-              value: RawJSON
+              value: 'BGP Fetch'
+
       discovery_rules:
-        - name: 'BGP Peer Discovery'
+        - uuid: '894bcc6d-3257-4f59-a305-032d21f73f68'
+          name: 'Discover BGP Neighbors'
           type: DEPENDENT
-          key: bgp.discovery
+          key: 'bgp.discovery'
           delay: '0'
-          lifetime: 3d
           item_prototypes:
-            - name: 'Peer [{#NAME}] - Uptime'
+            - uuid: '3c98cc05-7d30-43c2-b0dc-9b8d60b445e5'
+              name: 'BGP {#NAME} ({#IP}) Status'
+              key: 'bgp.status[{#IP}]'
               type: DEPENDENT
-              key: 'bgp.peer.uptime[{#IP}]'
-              delay: '0'
-              history: 30d
-              trends: 90d
-              units: uptime
+              value_type: UNSIGNED
+              units: ''
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$[?(@.IP=="{#IP}")].STATUS.first()'
+            - uuid: '2a3cd879-f4f9-4d3e-935d-5ba7a289cf0a'
+              name: 'BGP {#NAME} ({#IP}) Uptime'
+              key: 'bgp.uptime[{#IP}]'
+              type: DEPENDENT
+              value_type: UNSIGNED
+              units: 's'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$[?(@.IP=="{#IP}")].UPTIME.first()'
+            - uuid: '7c5e4e3d-5dc9-4bba-8e65-7d3c99e255e3'
+              name: 'BGP {#NAME} ({#IP}) Message Count'
+              key: 'bgp.messages[{#IP}]'
+              type: DEPENDENT
               value_type: UNSIGNED
               preprocessing:
                 - type: JSONPATH
                   parameters:
-                    - '$[?(@.IP == "{#IP}")].UPTIME.first()'
-              master_item:
-                key: 'bgpRosV7.py[{$API_USER},{$API_PASS},{$HOST_IP},{$API_PORT}]'
-              tags:
-                - tag: BGP
-                  value: Uptime
-
-            - name: 'Peer [{#NAME}] - Status'
+                    - '$[?(@.IP=="{#IP}")].MESSAGES.first()'
+            - uuid: 'aa7e6de4-7f19-4f53-87d8-0dcfe435ec7a'
+              name: 'BGP {#NAME} ({#IP}) AS Number'
+              key: 'bgp.as[{#IP}]'
               type: DEPENDENT
-              key: 'bgp.peer.status[{#IP}]'
-              delay: '0'
-              history: 30d
-              trends: 90d
-              preprocessing:
-                - type: JSONPATH
-                  parameters:
-                    - '$[?(@.IP == "{#IP}")].STATUS.first()'
-              master_item:
-                key: 'bgpRosV7.py[{$API_USER},{$API_PASS},{$HOST_IP},{$API_PORT}]'
-              valuemap:
-                name: 'Peer Status Map'
-              tags:
-                - tag: BGP
-                  value: Status
-
-            - name: 'Peer [{#NAME}] - ASN'
-              type: DEPENDENT
-              key: 'bgp.peer.asn[{#IP}]'
-              delay: '0'
-              history: 30d
-              trends: '0'
-              preprocessing:
-                - type: JSONPATH
-                  parameters:
-                    - '$[?(@.IP == "{#IP}")].AS.first()'
-              master_item:
-                key: 'bgpRosV7.py[{$API_USER},{$API_PASS},{$HOST_IP},{$API_PORT}]'
-              tags:
-                - tag: BGP
-                  value: ASN
-
-            - name: 'Peer [{#NAME}] - Messages'
-              type: DEPENDENT
-              key: 'bgp.peer.messages[{#IP}]'
-              delay: '0'
-              history: 30d
-              trends: 90d
               value_type: UNSIGNED
               preprocessing:
                 - type: JSONPATH
                   parameters:
-                    - '$[?(@.IP == "{#IP}")].MESSAGES.first()'
-              master_item:
-                key: 'bgpRosV7.py[{$API_USER},{$API_PASS},{$HOST_IP},{$API_PORT}]'
-              tags:
-                - tag: BGP
-                  value: Messages
-
-          trigger_prototypes:
-            - name: 'BGP Peer [{#NAME}] DOWN'
-              expression: 'last(/BGP Monitoring - MikroTik RouterOSv7/bgp.peer.status[{#IP}])=0'
-              priority: HIGH
-              manual_close: 'YES'
-              tags:
-                - tag: BGP
-                  value: DOWN
-
+                    - '$[?(@.IP=="{#IP}")].AS.first()'
+            - uuid: 'b4ab89f1-6405-4d46-a10b-6a9c691d3ca5'
+              name: 'BGP {#NAME} ({#IP}) Name'
+              key: 'bgp.name[{#IP}]'
+              type: DEPENDENT
+              value_type: TEXT
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$[?(@.IP=="{#IP}")].NAME.first()'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[?(@.NAME)]'
           master_item:
             key: 'bgpRosV7.py[{$API_USER},{$API_PASS},{$HOST_IP},{$API_PORT}]'
           lld_macro_paths:
             - lld_macro: '{#IP}'
-              path: $.IP
+              path: '$.IP'
             - lld_macro: '{#NAME}'
-              path: $.NAME
-          preprocessing:
-            - type: JSONPATH
-              parameters:
-                - '$.[:]'
-      macros:
-        - macro: '{$API_PORT}'
-          value: '8728'
-        - macro: '{$API_USER}'
-          value: 'admin'
-        - macro: '{$API_PASS}'
-          value: 'admin'
-        - macro: '{$HOST_IP}'
-          value: '127.0.0.1'
-      valuemaps:
-        - name: 'Peer Status Map'
-          mappings:
-            - value: '0'
-              newvalue: 'DOWN'
-            - value: '1'
-              newvalue: 'UP'
+              path: '$.NAME'
+          lld_macro_paths_custom: []
+
