@@ -1,34 +1,35 @@
+#!/usr/bin/env python3.10
+
 import os
 import re
 import json
 import sys
 from librouteros import connect
-
 from dotenv import load_dotenv
 
-# Загрузка переменных из .env файла
+# Загрузка переменных из файла .env
 load_dotenv()
 
-'''
-# Passar sys.argv[] para produção no Zabbix
-user = sys.argv[1]
-senha = sys.argv[2]
-ip = sys.argv[3]
-porta = sys.argv[4]
-
-'''
-
-
-# Configurações de conexão
+# Из .env
 user =  os.getenv("API_USER")
-password = os.getenv("API_PASS")
-ip = os.getenv("HOST_IP") # IP de Gerencia do BGP
-port = os.getenv("API_PORT")
+senha = os.getenv("API_PASS")
+ip = os.getenv("HOST_IP") # IP для управления BGP
+porta = os.getenv("API_PORT")
 
-# Conecta ao dispositivo
-api = connect(username=user, password=password, host=ip, port=port)
+# Из аргументов командной строки
+# user = sys.argv[1]
+# senha = sys.argv[2]
+# ip = sys.argv[3]
+# porta = sys.argv[4]
 
-# Função para analisar o tempo de atividade das sessões BGP
+# Подключение
+try:
+    api = connect(username=user, password=senha, host=ip, port=porta)
+except Exception as e:
+    print('[]')  # Возвращаем пустой JSON, чтобы Zabbix не упал
+    sys.exit(1)
+
+# Функция для разбора времени работы BGP-сессий
 def parse_uptime(uptime):
     time_dict = {"w": 7*86400, "d": 86400, "h": 3600, "m": 60, "s": 1}
     uptime_secs = 0
@@ -38,12 +39,12 @@ def parse_uptime(uptime):
             uptime_secs += int(m.group(1)) * v
     return uptime_secs
 
-# Consulta as sessões BGP e armazena as informações relevantes em uma lista de dicionários
+# Получение BGP-сессий и сохранение нужной информации в список словарей
 search_sessions = []
 for session in api(cmd="/routing/bgp/session/print"):
-    uptime_secs = parse_uptime(session.get("uptime", "0s"))  # Valor padrão "0s" para chave "uptime" ausente
-    messages = session.get("remote.messages", 0)  # Valor padrão 0 para chave "remote.messages" ausente
-    status = session.get("established", 0) # Valor padrão 0 para chave "established" ausente
+    uptime_secs = parse_uptime(session.get("uptime", "0s"))  # Значение по умолчанию "0s", если ключ "uptime" отсутствует
+    messages = session.get("remote.messages", 0)  # Значение по умолчанию 0, если ключ "remote.messages" отсутствует
+    status = session.get("established", 0)  # Значение по умолчанию 0, если ключ "established" отсутствует
     search_sessions.append({
         "NAME": session["name"],
         "IP": session["remote.address"],
@@ -53,7 +54,7 @@ for session in api(cmd="/routing/bgp/session/print"):
         "STATUS": int(status)
     })
 
-# Consulta as rotas de origem e armazena as informações relevantes em uma lista de dicionários
+# Получение маршрутов происхождения и сохранение нужной информации в список словарей
 search_routes = []
 for route in api(cmd="/routing/stats/origin/print"):
     if "bgp-IP-" in route["name"]:
@@ -67,7 +68,7 @@ for route in api(cmd="/routing/stats/origin/print"):
             "COUNT": route["total-route-count"]
         })
 
-# Combina as informações das sessões BGP e das rotas de origem em um objeto JSON
+# Объединение информации о BGP-сессиях и маршрутах в один JSON-объект
 discovery_data = search_sessions + search_routes
 discovery_json = json.dumps(discovery_data, ensure_ascii=False)
 print(discovery_json)
