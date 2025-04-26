@@ -1,95 +1,237 @@
 zabbix_export:
   version: '6.0'
-  date: '2025-04-26T00:00:00Z'
+  date: '2023-04-11T17:39:41Z'
   groups:
-    - uuid: '6ee1cfd3-0dfc-4e49-93b4-9831bfa1f637'
+    - uuid: 1af37f070a6646338c0dada3bfce6111
       name: RouterOSv7
   templates:
-    - uuid: 'df3a79e8-594d-11ef-b9a5-8b8d9432b5c5'
-      template: 'BGP Monitoring MikroTik RouterOSv7'
-      name: 'BGP Monitoring MikroTik RouterOSv7'
+    - uuid: a66dff04f88c422d8b3d6ec7f9789eb4
+      template: 'BGP - MiKroTik - RouterOSv7'
+      name: 'BGP - MiKroTik - RouterOSv7'
       groups:
         - name: RouterOSv7
       items:
-        - uuid: '19e85110-72a0-4e58-9b9d-6b08f7a51f6b'
-          name: 'Fetch BGP Neighbors Data'
-          key: 'bgpRosV7.py[{$API_USER},{$API_PASS},{$HOST_IP},{$API_PORT}]'
-          type: ZABBIX_ACTIVE
+        - uuid: b3812bd300134d43886522c9aed09283
+          name: BGP (JSON)
+          type: EXTERNAL
+          key: 'bgpRosV7.py[{$USER},{$SENHA},{HOST.IP},{$PORTA}]'
+          delay: 2m
+          history: 5d
+          trends: '0'
           value_type: TEXT
-          delay: '30s'
-          description: 'Fetch BGP neighbor raw data from RouterOSv7'
+          tags:
+            - tag: Application
+              value: JSON
+        - uuid: cbd96022515a45fc98c25049cdc33362
+          name: Количество маршрутов (JSON)
+          type: EXTERNAL
+          key: 'bgpRosV7.py[{$USER},{$SENHA},{HOST.IP},{$PORTA}]'
+          delay: 4m
+          trends: '0'
+          value_type: TEXT
+          preprocessing:
+            - type: STR_REPLACE
+              parameters:
+                - bgp-IP6-
+                - ''
+            - type: STR_REPLACE
+              parameters:
+                - bgp-IP-
+                - ''
+          tags:
+            - tag: Application
+              value: JSON
+        - uuid: 0129fa491c74490ba606c6d42b463c43
+          name: 'Общее количество сессий'
+          type: DEPENDENT
+          key: quantidade.total
+          delay: '0'
+          history: 30d
+          trends: 90d
           preprocessing:
             - type: JSONPATH
               parameters:
-                - '$[*]'
+                - '$[?(@.STATUS)].length()'
+          master_item:
+            key: 'bgpRosV7.py[{$USER},{$SENHA},{HOST.IP},{$PORTA}]'
           tags:
             - tag: Application
-              value: 'BGP Fetch'
-
-      discovery_rules:
-        - uuid: '894bcc6d-3257-4f59-a305-032d21f73f68'
-          name: 'Discover BGP Neighbors'
+              value: КоличествоPeer
+        - uuid: e01c08fafd7f4e4c8f07fb1be7dceda7
+          name: 'Количество сессий DOWN'
           type: DEPENDENT
-          key: 'bgp.discovery'
+          key: quantidade.total.down
           delay: '0'
+          history: 30d
+          trends: 90d
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[?(@.STATUS == ''0'')].length()'
+          master_item:
+            key: 'bgpRosV7.py[{$USER},{$SENHA},{HOST.IP},{$PORTA}]'
+          tags:
+            - tag: Application
+              value: КоличествоPeer
+        - uuid: 0d75edf732f54880a78317234a0406a0
+          name: 'Количество сессий UP'
+          type: DEPENDENT
+          key: quantidade.total.up
+          delay: '0'
+          history: 30d
+          trends: 90d
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[?(@.STATUS == ''1'')].length()'
+          master_item:
+            key: 'bgpRosV7.py[{$USER},{$SENHA},{HOST.IP},{$PORTA}]'
+          tags:
+            - tag: Application
+              value: КоличествоPeer
+      discovery_rules:
+        - uuid: 064d1cdbc0eb4d84a9e383cf8bcd108d
+          name: 'BGP - Обнаружение'
+          type: DEPENDENT
+          key: bgp.discovery.RouterOSv7
+          delay: '0'
+          lifetime: 3d
           item_prototypes:
-            - uuid: '3c98cc05-7d30-43c2-b0dc-9b8d60b445e5'
-              name: 'BGP {#NAME} ({#IP}) Status'
-              key: 'bgp.status[{#IP}]'
+            - uuid: 1f214119746947269a923f237e003bcf
+              name: '{#IP} - ASN'
               type: DEPENDENT
-              value_type: UNSIGNED
-              units: ''
+              key: 'AS.["{#IP}"]'
+              delay: '0'
+              history: 30d
+              trends: 90d
+              valuemap:
+                name: Состояние пира (Peer)
               preprocessing:
                 - type: JSONPATH
                   parameters:
-                    - '$[?(@.IP=="{#IP}")].STATUS.first()'
-            - uuid: '2a3cd879-f4f9-4d3e-935d-5ba7a289cf0a'
-              name: 'BGP {#NAME} ({#IP}) Uptime'
-              key: 'bgp.uptime[{#IP}]'
+                    - '$[?(@.IP == ''{#IP}'')].AS.first()'
+              master_item:
+                key: 'bgpRosV7.py[{$USER},{$SENHA},{HOST.IP},{$PORTA}]'
+              tags:
+                - tag: Application
+                  value: ASNPeer
+            - uuid: a3fcdbef655d4ff68fe3b8ba38fbd00e
+              name: '{#IP} - Статус'
               type: DEPENDENT
-              value_type: UNSIGNED
-              units: 's'
+              key: 'Ip.["{#IP}"]'
+              delay: '0'
+              history: 30d
+              trends: 90d
+              valuemap:
+                name: Состояние пира (Peer)
               preprocessing:
                 - type: JSONPATH
                   parameters:
-                    - '$[?(@.IP=="{#IP}")].UPTIME.first()'
-            - uuid: '7c5e4e3d-5dc9-4bba-8e65-7d3c99e255e3'
-              name: 'BGP {#NAME} ({#IP}) Message Count'
-              key: 'bgp.messages[{#IP}]'
+                    - '$[?(@.IP == ''{#IP}'')].STATUS.first()'
+              master_item:
+                key: 'bgpRosV7.py[{$USER},{$SENHA},{HOST.IP},{$PORTA}]'
+              tags:
+                - tag: Application
+                  value: СтатусPeer
+            - uuid: 4c9e257020c04cbfb185df312088fb69
+              name: '{#IP} - Сообщения'
               type: DEPENDENT
-              value_type: UNSIGNED
+              key: 'Messages.["{#IP}"]'
+              delay: '0'
+              history: 30d
+              trends: 90d
+              valuemap:
+                name: Состояние пира (Peer)
               preprocessing:
                 - type: JSONPATH
                   parameters:
-                    - '$[?(@.IP=="{#IP}")].MESSAGES.first()'
-            - uuid: 'aa7e6de4-7f19-4f53-87d8-0dcfe435ec7a'
-              name: 'BGP {#NAME} ({#IP}) AS Number'
-              key: 'bgp.as[{#IP}]'
+                    - '$[?(@.IP == ''{#IP}'')].MESSAGES.first()'
+              master_item:
+                key: 'bgpRosV7.py[{$USER},{$SENHA},{HOST.IP},{$PORTA}]'
+              tags:
+                - tag: Application
+                  value: СообщенияPeer
+            - uuid: 441c2e7ef2554f9bb4059504124f928e
+              name: '{#IP} - Имя'
               type: DEPENDENT
-              value_type: UNSIGNED
-              preprocessing:
-                - type: JSONPATH
-                  parameters:
-                    - '$[?(@.IP=="{#IP}")].AS.first()'
-            - uuid: 'b4ab89f1-6405-4d46-a10b-6a9c691d3ca5'
-              name: 'BGP {#NAME} ({#IP}) Name'
-              key: 'bgp.name[{#IP}]'
-              type: DEPENDENT
+              key: 'Name.["{#IP}"]'
+              delay: '0'
+              history: 30d
+              trends: '0'
               value_type: TEXT
               preprocessing:
                 - type: JSONPATH
                   parameters:
-                    - '$[?(@.IP=="{#IP}")].NAME.first()'
+                    - '$[?(@.IP == ''{#IP}'')].NAME.first()'
+              master_item:
+                key: 'bgpRosV7.py[{$USER},{$SENHA},{HOST.IP},{$PORTA}]'
+              tags:
+                - tag: Application
+                  value: ИмяPeer
+            - uuid: 94bed2f791de497094b8c169ee6f6b39
+              name: '{#IP} - Количество маршрутов'
+              type: DEPENDENT
+              key: 'RouterCount.["{#IP}"]'
+              delay: '0'
+              history: 30d
+              trends: 90d
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$[?(@.IP == ''{#IP}'')].COUNT.first()'
+              master_item:
+                key: 'bgpRosV7.py[{$USER},{$SENHA},{HOST.IP},{$PORTA}]'
+              tags:
+                - tag: Application
+                  value: КоличествоМаршрутовPeer
+            - uuid: 02e5dc9f47c14192bc9ca9700453bc19
+              name: '{#IP} - Время работы'
+              type: DEPENDENT
+              key: 'Uptime.["{#IP}"]'
+              delay: '0'
+              history: 30d
+              trends: 90d
+              units: uptime
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$[?(@.IP == ''{#IP}'')].UPTIME.first()'
+              master_item:
+                key: 'bgpRosV7.py[{$USER},{$SENHA},{HOST.IP},{$PORTA}]'
+              tags:
+                - tag: Application
+                  value: АптаймPeer
+              trigger_prototypes:
+                - uuid: d111fa23cb43426da4a909920b07513d
+                  expression: 'last(/BGP - MiKroTik - RouterOSv7/Uptime.["{#IP}"])<600'
+                  name: '{#IP} - {#NAME} - Пир недоступен (DOWN)'
+                  priority: DISASTER
+                  manual_close: 'YES'
+                  tags:
+                    - tag: BGPDOWN
+          master_item:
+            key: 'bgpRosV7.py[{$USER},{$SENHA},{HOST.IP},{$PORTA}]'
+          lld_macro_paths:
+            - lld_macro: '{#IP}'
+              path: $.IP
+            - lld_macro: '{#NAME}'
+              path: $.NAME
           preprocessing:
             - type: JSONPATH
               parameters:
-                - '$[?(@.NAME)]'
-          master_item:
-            key: 'bgpRosV7.py[{$API_USER},{$API_PASS},{$HOST_IP},{$API_PORT}]'
-          lld_macro_paths:
-            - lld_macro: '{#IP}'
-              path: '$.IP'
-            - lld_macro: '{#NAME}'
-              path: '$.NAME'
-          lld_macro_paths_custom: []
-
+                - '$.[:]'
+      macros:
+        - macro: '{$PORTA}'
+          value: '8728'
+        - macro: '{$SENHA}'
+          value: SUA_SENHA
+        - macro: '{$USER}'
+          value: SEU_USER
+      valuemaps:
+        - uuid: 80f70e16a1724a00b6b1272ae7fe48c2
+          name: Состояние пира (Peer)
+          mappings:
+            - value: '0'
+              newvalue: ВЫКЛ (DOWN)
+            - value: '1'
+              newvalue: ВКЛ (UP)
