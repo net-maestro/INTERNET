@@ -204,7 +204,7 @@ zabbix_export:
               trigger_prototypes:
                 - uuid: d111fa23cb43426da4a909920b07513d
                   expression: 'last(/BGP - MiKroTik - RouterOSv7/Uptime.["{#IP}"])<600'
-                  name: '{#IP} - {#NAME} - Пир недоступен (DOWN)'
+                  name: '{#IP} - {#NAME} - BGP сессия (DOWN)'
                   priority: HIGH
                   manual_close: 'YES'
                   tags:
