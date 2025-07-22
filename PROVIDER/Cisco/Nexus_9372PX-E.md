@@ -1,4 +1,4 @@
-! Cisco Nexus 9372PX-E Configuration
+```` ! Cisco Nexus 9372PX-E Configuration
 ! Aggregates two 28-port switches with Nexus 3064 enhancements
 ! Version: 9.3(10)
 
@@ -315,7 +315,7 @@ interface Ethernet1/29-38
   no lldp receive
   channel-group 20 mode active
   no shutdown
-
+```
 ! --- Uplink Ports (QSFP+) ---
 interface Ethernet1/49-50
   description "CORE_UPLINK"
