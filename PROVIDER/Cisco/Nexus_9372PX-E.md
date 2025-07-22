@@ -1,5 +1,5 @@
 ```` ! Cisco Nexus 9372PX-E Configuration
-! Aggregates two 28-port switches with Nexus 3064 enhancements
+! Aggregates Nexus_9372PX-E
 ! Version: 9.3(10)
 
 hostname NEXUS-AGG-01
