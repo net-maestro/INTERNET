@@ -1,11 +1,11 @@
 ```shell
 ! Создание VLAN'ов
 vlan 2
-  name TRUNK-VLAN-2
+  name SWITCH2
 vlan 133
-  name CUSTOMER-VLAN-133
+  name USERS-NAT-133
 vlan 200
-  name TRUNK-VLAN-200
+  name USERS-EXT-200
 exit
 
 ! Включение DHCP Snooping
