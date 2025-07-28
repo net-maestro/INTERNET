@@ -62,10 +62,23 @@ interface range gigabitEthernet 1/0/27-28
   shutdown
 exit
 
+! Настройка IP-адреса на VLAN 2
+interface vlan 2
+  ip address 172.16.1.17 255.255.255.0
+  no shutdown
+exit
+
+! Шлюз по умолчанию
+ip default-gateway 172.16.1.1
+
+! NTP-сервер
+ntp server 172.16.1.1
+
 ! Безопасность управления
 service password-encryption
 username admin password 0 StrongAdminPass123
 
 ! Сохранение конфигурации
 copy running-config startup-config
+
 ```
