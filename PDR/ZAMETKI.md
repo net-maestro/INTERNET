@@ -7,6 +7,7 @@
 
 ####------------####
 
+![zaboronni_znaki](https://github.com/user-attachments/assets/03fe8805-115e-4228-b8b2-c498f6f2f595)
 
 ```
 
