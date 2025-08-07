@@ -1,4 +1,4 @@
-'''
+'''shell
 ## Правило проезда регулировщика
 ![regulirovshik](https://github.com/user-attachments/assets/7ed00f79-9bd1-4259-a84e-d5452b25f8e7)
  - Палка верх устремлена – всем стоять велит она.
