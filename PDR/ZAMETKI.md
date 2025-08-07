@@ -21,3 +21,5 @@
 ![znaki-servisy](https://github.com/user-attachments/assets/a91ab4d6-85c0-4647-ba38-29ca373508e3)
 
 
+## Опізнавальні знаки
+<img width="750" height="517" alt="opiznavalni-znaky" src="https://github.com/user-attachments/assets/68323dd7-7945-4a73-a3f6-05c5c81cfd76" />
