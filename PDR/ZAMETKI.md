@@ -7,12 +7,12 @@
  - «Голые» грудь и спина — для водителя стена!
 
 
-## Знаки:
+# Знаки:
 
-### Інформаційно-вказівні знаки
+## Інформаційно-вказівні знаки
 ![informatsiyno-vkazivni-znaky-2](https://github.com/user-attachments/assets/e6c75b24-e0ce-48d5-927d-ba77a7697dc3)
 
-### Попереджувальні знаки
+## Попереджувальні знаки
 ![poperedjuvalni-znaky-2](https://github.com/user-attachments/assets/19c4dde7-a14d-4333-8bf9-cdc213984c25)
 
 ### Знаки пріорітету, Заборонні знаки 
