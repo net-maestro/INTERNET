@@ -1,4 +1,3 @@
-'''shell
 ## Правило проезда регулировщика
 ![regulirovshik](https://github.com/user-attachments/assets/7ed00f79-9bd1-4259-a84e-d5452b25f8e7)
  - Палка верх устремлена – всем стоять велит она.
@@ -21,7 +20,4 @@
 ## Знаки сервісу
 ![znaki-servisy](https://github.com/user-attachments/assets/a91ab4d6-85c0-4647-ba38-29ca373508e3)
 
-
-
-```
 
