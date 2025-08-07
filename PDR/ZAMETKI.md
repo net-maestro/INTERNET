@@ -13,9 +13,10 @@
 
 <img width="853" height="1280" alt="poperedjuvalni-znaky" src="https://github.com/user-attachments/assets/0d0fb9de-ff0c-423a-84ac-8b1815ec91dc" />
 
-#### Заборонні знаки 
+#### Знаки пріорітету, Заборонні знаки 
 
-![zaboronni_znaki](https://github.com/user-attachments/assets/03fe8805-115e-4228-b8b2-c498f6f2f595)
+![znaky-prioritety-zaboronni-znaki](https://github.com/user-attachments/assets/7a4d963d-4000-416f-9507-7940121d3e12)
+
 
 ```
 
