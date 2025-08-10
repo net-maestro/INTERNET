@@ -21,6 +21,7 @@ acl hybrid number 300
   rule 15 deny tcp any eq 1080 any any ingress any egress any  ! (SOCKS proxy)
   rule 16 deny tcp any eq 3127 any any ingress any egress any  ! (Backdoor port)
   rule 17 deny tcp any eq telnet any any ingress any egress any
+  rule 18 deny udp any 224.0.0.251 0.0.0.0 eq 5353 any ingress any egress any
   rule 100 permit any any any any ingress any egress any  ! Default rule to allow traffic
 ```
 
