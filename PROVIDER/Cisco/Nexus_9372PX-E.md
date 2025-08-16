@@ -105,6 +105,7 @@ ip access-list COPP-ACL-SNMP
 ! =============================================
 ! 9. Control Plane Policing
 ! =============================================
+####Ограничение ICMP и SNMP на процессоре для защиты. Практика хранения — хорошая.
 class-map type control-plane match-any COOP-CLASS-ICMP
   match access-group name COPP-ACL-ICMP
 class-map type control-plane match-any COOP-CLASS-SNMP
@@ -118,6 +119,65 @@ policy-map type control-plane COOP-POLICY
 
 control-plane
   service-policy input COOP-POLICY
+
+
+
+! =============================================
+! 10. SNMP и NTP
+! =============================================
+snmp-server contact noc@happylink.net.ua
+snmp-server location SW1
+snmp-server community private group network-operator
+ntp server 172.16.1.1 use-vrf default
+
+
+
+! =============================================
+! 11. Маршруты и VLAN
+! =============================================
+ip route 0.0.0.0/0 172.16.1.1
+
+vlan 1-3,13,21,71-73,91-94,110-112,114-117,120-125,131-133,141-145,151-156,161-165,171-179,200-202,254-255,1001-1003,4022-4023,4026
+...
+
+
+
+
+! =============================================
+! 12. Интерфейсы
+! =============================================
+interface Vlan2
+  no shutdown
+  ip address 172.16.1.2/24
+
+interface port-channel1
+  description LACP_Ethernet1/7-8_TO_ZTE_gei_1/4/1-2
+  switchport mode trunk
+  switchport trunk allowed vlan 2,200,1001-1002
+  spanning-tree port type edge trunk
+  storm-control broadcast level pps 490000
+  storm-control multicast level pps 240000
+  storm-control unicast level pps 100000
+  storm-control action shutdown
+
+
+
+! =============================================
+! 13. Management
+! =============================================
+###Management VRF для mgmt0
+####Консоль без ограничения длины вывода
+####VTY с таймаутом 45 мин
+####Boot через flash
+
+interface mgmt0
+  vrf member management
+line console
+  terminal length 0
+line vty
+  exec-timeout 45
+boot nxos bootflash:/nxos.9.3.12.bin
+
 
 
 ```
