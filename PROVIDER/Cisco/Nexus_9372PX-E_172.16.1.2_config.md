@@ -1,10 +1,14 @@
-```shell
+```cisco
 
-!Running configuration last done at: Fri Aug 15 18:21:56 2025
-!Time: Fri Aug 15 18:37:32 2025
+!Command: show running-config
+!Running configuration last done at: Sat Aug 16 14:28:23 2025
+!Time: Sat Aug 16 14:28:40 2025
 
 version 9.3(12) Bios:version 07.69
 hostname N9K-CORE-AGG-01
+policy-map type network-qos JUMBO
+  class type network-qos class-default
+    mtu 9216
 vdc N9K-CORE-AGG-01 id 1
   limit-resource vlan minimum 16 maximum 4094
   limit-resource vrf minimum 2 maximum 4096
@@ -23,8 +27,10 @@ clock timezone UTC 3 0
 logging level l2fm 5
 logging level lacp 5
 logging level vlan_mgr 5
+logging level clis 6
+
 no password strength-check
-username admin password 5 $5$MKKPJB$Wk  role network-admin
+username admin password 5 $5$MKKPJB$  role network-admin
 
 banner motd #
 
@@ -74,18 +80,44 @@ errdisable recovery cause storm-control
 errdisable recovery cause security-violation
 errdisable recovery cause failed-port-state
 ip access-list ALLOW_MANAGE_NETWORK
-  10 permit tcp 172.16.1.0/24 any eq 22
-  20 permit tcp 146.120.101.245/32 any eq 22
-  30 permit tcp 146.120.101.246/32 any eq 22
-  40 permit tcp 10.31.0.0/24 any eq 22
-  50 permit tcp 10.31.0.0/24 any eq telnet
-  60 deny tcp any any eq 22
+  10 permit tcp 172.16.1.0 0.0.0.255 any eq 22
+  20 permit tcp 172.16.1.0 0.0.0.255 any eq telnet
+  30 permit udp 172.16.17.0 0.0.0.255 any eq snmp
+  40 permit tcp 146.120.101.90/32 any eq 22
+  50 permit tcp 146.120.101.90/32 any eq telnet
+  60 permit udp 146.120.101.90/32 any eq snmp
+  70 permit tcp 146.120.101.245/32 any eq 22
+  80 permit tcp 146.120.101.245/32 any eq telnet
+  90 permit udp 146.120.101.245/32 any eq snmp
+  100 permit tcp 146.120.101.246/32 any eq telnet
+  110 permit tcp 146.120.101.246/32 any eq 22
+  120 permit udp 146.120.101.246/32 any eq snmp
+  130 deny tcp any any eq 22
+  140 deny tcp any any eq telnet
+  150 deny udp any any eq snmp
+  200 permit ip any any
+ip access-list CLIENT-IN-FILTER
+  10 deny tcp any any eq ftp
+  20 deny tcp any any eq 22
+  30 deny tcp any any eq telnet
+  40 deny tcp any any eq 135
+  50 deny tcp any any eq 137
+  60 deny udp any any eq netbios-ns
+  70 deny tcp any any eq 138
+  80 deny udp any any eq netbios-dgm
+  90 deny tcp any any eq 139
+  100 deny udp any any eq snmp
+  110 deny udp any any eq snmptrap
+  120 deny tcp any any eq 445
+  200 permit ip any any
 ip access-list COPP-ACL-ICMP
   10 permit icmp any any
 ip access-list COPP-ACL-SNMP
   10 permit udp any any eq snmp
   20 permit udp any any eq snmptrap
 diagnostic bootup level bypass
+system qos
+  service-policy type network-qos JUMBO
 
 
 system vlan 3800 reserve
@@ -108,11 +140,11 @@ rmon event 2 log trap public description CRITICAL(2) owner PMON@CRITICAL
 rmon event 3 log trap public description ERROR(3) owner PMON@ERROR
 rmon event 4 log trap public description WARNING(4) owner PMON@WARNING
 rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
-snmp-server community private group network-operator
+snmp-server community pacman group network-operator
 ntp server 172.16.1.1 use-vrf default
 
 ip route 0.0.0.0/0 172.16.1.1
-vlan 1-3,13,21,31,71-73,91-94,110-112,114-117,120-125,131-133,141-145,151-156,161-165,171-179,200-202,254-255,1001-1003,4022-4023,4026
+vlan 1-3,13,21,71-73,91-94,110-112,114-117,120-125,131-133,141-145,151-156,161-165,171-179,200-202,254-255,1001-1003,4022-4023,4026
 vlan 2
   name SWITCH2
 vlan 3
@@ -252,7 +284,6 @@ interface Vlan2
   no shutdown
   ip address 172.16.1.2/24
 
-
 interface port-channel1
   description LACP_Ethernet1/7-8_TO_ZTE_gei_1/4/1-2
   switchport mode trunk
@@ -261,6 +292,7 @@ interface port-channel1
   storm-control broadcast level pps 490000
   storm-control multicast level pps 240000
   storm-control unicast level pps 100000
+  storm-control action shutdown
 
 interface Ethernet1/1
   description UPLINK_KIEVNET-->
@@ -270,12 +302,11 @@ interface Ethernet1/1
   spanning-tree port type edge trunk
 
 interface Ethernet1/2
-  description <--KRIUKOVSHINA-->
+  description R2<--KRIUKOVSHINA-->>
   no cdp enable
   switchport mode trunk
   switchport trunk allowed vlan 254
   spanning-tree port type edge trunk
-  mtu 9216
 
 interface Ethernet1/3
   description R1
@@ -316,6 +347,7 @@ interface Ethernet1/7
   storm-control broadcast level pps 490000
   storm-control multicast level pps 240000
   storm-control unicast level pps 100000
+  storm-control action shutdown
   channel-group 1 mode active
 
 interface Ethernet1/8
@@ -327,6 +359,7 @@ interface Ethernet1/8
   storm-control broadcast level pps 490000
   storm-control multicast level pps 240000
   storm-control unicast level pps 100000
+  storm-control action shutdown
   channel-group 1 mode active
 
 interface Ethernet1/9
@@ -345,7 +378,6 @@ interface Ethernet1/11
   switchport mode trunk
   switchport trunk allowed vlan 2-3,110,120,131-133,141-145,151-156,200
   spanning-tree port type edge trunk
-  mtu 9216
 
 interface Ethernet1/12
   description TO_BARSELONA
@@ -353,7 +385,6 @@ interface Ethernet1/12
   switchport mode trunk
   switchport trunk allowed vlan 2,91-94,200
   spanning-tree port type edge trunk
-  mtu 9216
 
 interface Ethernet1/13
   description TO_CRYSTAL
@@ -361,7 +392,6 @@ interface Ethernet1/13
   switchport mode trunk
   switchport trunk allowed vlan 2,71-73,117,171,200
   spanning-tree port type edge trunk
-  mtu 9216
 
 interface Ethernet1/14
   description TO_SHEVCHENKA
@@ -369,7 +399,6 @@ interface Ethernet1/14
   switchport mode trunk
   switchport trunk allowed vlan 2,21,200
   spanning-tree port type edge trunk
-  mtu 9216
 
 interface Ethernet1/15
   description 172.16.1.91-->26(port)
@@ -556,7 +585,8 @@ interface Ethernet1/41
   description 10vp3_13900
   no cdp enable
   switchport mode trunk
-  switchport trunk allowed vlan 2
+  switchport trunk allowed vlan 133,200
+  ip port access-group CLIENT-IN-FILTER in
   spanning-tree port type edge trunk
   spanning-tree bpduguard enable
 
@@ -565,6 +595,7 @@ interface Ethernet1/42
   no cdp enable
   switchport mode trunk
   switchport trunk allowed vlan 115,132,200
+  ip port access-group CLIENT-IN-FILTER in
   spanning-tree port type edge trunk
   spanning-tree bpduguard enable
 
@@ -596,7 +627,6 @@ interface Ethernet1/47
   switchport trunk allowed vlan 2,13,21,71-73,91-94,110-112,114-117,120-125,131-133,141-145,151-156,161-165,171-179,200-202,254-255,1001-1003
   spanning-tree port type edge trunk
   spanning-tree guard none
-  mtu 9216
 
 interface Ethernet1/48
   description SW2_172.16.1.101
@@ -604,7 +634,6 @@ interface Ethernet1/48
   switchport mode trunk
   switchport trunk allowed vlan 2,13,21,71-73,91-94,110-112,114-117,120-125,131-133,141-145,151-156,161-165,171-179,200-202,255,1001-1003
   spanning-tree port type edge trunk
-  mtu 9216
 
 interface Ethernet1/49
 
@@ -625,6 +654,7 @@ line console
 line vty
   exec-timeout 45
 boot nxos bootflash:/nxos.9.3.12.bin
+
 
 
 
