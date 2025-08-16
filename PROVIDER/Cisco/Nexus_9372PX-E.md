@@ -7,7 +7,7 @@ hostname N9K-CORE-AGG-01   ! Имя коммутатора
 ! =============================================
 ! 2. QoS / Jumbo Frames
 ! =============================================
-####Увеличение MTU для jumbo frames. Полезно для L2 агрегации с большими пакетами, например, IPTV. Можно включить глобально через policy-map или отдельно MTU на каждом интерфейсе.
+#Увеличение MTU для jumbo frames. Полезно для L2 агрегации с большими пакетами, например, IPTV. Можно включить глобально через policy-map или отдельно MTU на каждом интерфейсе.
 policy-map type network-qos JUMBO
   class type network-qos class-default
     mtu 9216
@@ -76,7 +76,7 @@ errdisable recovery cause failed-port-state
 ! =============================================
 ! 8. ACLs 
 ! =============================================
-####ACL для управления коммутатором. Разрешает доступ только с определенных подсетей/хостов, все остальное блокирует.
+#ACL для управления коммутатором. Разрешает доступ только с определенных подсетей/хостов, все остальное блокирует.
 ip access-list ALLOW_MANAGE_NETWORK
   10 permit tcp 172.16.1.0 0.0.0.255 any eq 22
   20 permit tcp 172.16.1.0 0.0.0.255 any eq telnet
@@ -85,7 +85,7 @@ ip access-list ALLOW_MANAGE_NETWORK
   200 permit ip any any
 
 
-####Фильтр для клиентов, блокирует опасные порты и протоколы. Практика хранения — хорошая.
+#Фильтр для клиентов, блокирует опасные порты и протоколы. Практика хранения — хорошая.
 ip access-list CLIENT-IN-FILTER
   10 deny tcp any any eq ftp
   20 deny tcp any any eq 22
@@ -94,7 +94,7 @@ ip access-list CLIENT-IN-FILTER
   200 permit ip any any
 
 
-####ACL для CoPP (Control Plane Policing) — ограничивает трафик на процессор, предотвращает DDoS/ICMP flood. Хранить — да, полезно для восстановления.
+#ACL для CoPP (Control Plane Policing) — ограничивает трафик на процессор, предотвращает DDoS/ICMP flood. Хранить — да, полезно для восстановления.
 ip access-list COPP-ACL-ICMP
   10 permit icmp any any
 ip access-list COPP-ACL-SNMP
@@ -106,7 +106,7 @@ ip access-list COPP-ACL-SNMP
 ! =============================================
 ! 9. Control Plane Policing
 ! =============================================
-####Ограничение ICMP и SNMP на процессоре для защиты. Практика хранения — хорошая.
+#Ограничение ICMP и SNMP на процессоре для защиты. Практика хранения — хорошая.
 class-map type control-plane match-any COOP-CLASS-ICMP
   match access-group name COPP-ACL-ICMP
 class-map type control-plane match-any COOP-CLASS-SNMP
@@ -166,10 +166,10 @@ interface port-channel1
 ! =============================================
 ! 13. Management
 ! =============================================
-###Management VRF для mgmt0
-####Консоль без ограничения длины вывода
-####VTY с таймаутом 45 мин
-####Boot через flash
+#Management VRF для mgmt0
+#Консоль без ограничения длины вывода
+#VTY с таймаутом 45 мин
+#Boot через flash
 
 interface mgmt0
   vrf member management
