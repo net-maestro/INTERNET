@@ -18,6 +18,10 @@ EOF
 echo "🔹 Убеждаемся, что ALLOWED_HOSTS=* в .env"
 echo "ALLOWED_HOSTS=*" >> .env
 
+echo "устанавливаем язык системы в .env"
+echo "LANGUAGE_CODE=ru" >> .env
+echo "DEFAULT_LANGUAGE=ru" >> .env
+
 echo "🔹 Скачиваем образы и запускаем"
 docker compose pull
 docker compose up -d
