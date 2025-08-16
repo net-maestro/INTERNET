@@ -20,7 +20,8 @@
 7. [Полезные фишки для украинского ISP](#7-полезные-фишки-для-украинского-isp)
 8. [Пример workflow](#8-пример-workflow-для-украинского-isp)
 9. [Примечания и best practices](#9-примечания-и-best-practices)
-10. [Работа с API NetBox: автоматизация для ISP](#10-работа с API NetBox: автоматизация для ISP)
+10. https://github.com/net-maestro/INTERNET/blob/main/NETBOX/NETBOX_MIGRATION_NOTES_ISP.md#10-%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0-%D1%81-api-netbox-%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F-%D0%B4%D0%BB%D1%8F-isp
+11. [Работа с API NetBox: автоматизация для ISP](#10-работа с API NetBox: автоматизация для ISP)
 
 ---
 
