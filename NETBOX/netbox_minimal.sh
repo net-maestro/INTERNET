@@ -31,3 +31,8 @@ echo "   docker compose ps"
 echo "   docker compose logs netbox"
 echo "🌐 Откройте: http://$(hostname -I | awk '{print $1}'):8000"
 echo "Создать пользователя docker compose exec netbox /opt/netbox/netbox/manage.py createsuperuser"
+
+echo "Установка плагина netbox-bgp"
+echo "docker exec -u root -it netbox-docker-netbox-1 /bin/bash"
+echo "uv pip install netbox-bgp"
+echo "echo "PLUGINS = ['netbox_bgp']" >> /opt/netbox/netbox/netbox/configuration.py"
