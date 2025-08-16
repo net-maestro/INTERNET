@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# === Минимальный запуск NetBox по документации с плагином BGP ===
-# Только официальные шаги, без лишнего
+# === Минимальный запуск NetBox + установка плагина netbox-bgp ===
 
 echo "🔹 Клонируем netbox-docker..."
 git clone -b release https://github.com/netbox-community/netbox-docker.git
@@ -18,37 +17,36 @@ EOF
 echo "🔹 Убеждаемся, что ALLOWED_HOSTS=* в .env"
 echo "ALLOWED_HOSTS=*" >> .env
 
-echo "🔹 Устанавливаем язык системы в .env"
+echo "🔹 Устанавливаем язык интерфейса (русский)"
 echo "LANGUAGE_CODE=ru" >> .env
 
-echo "🔹 Добавляем конфигурацию плагина BGP"
-tee -a configuration/plugins/netbox_bgp.py <<'EOF'
-from django.conf import settings
-
-PLUGINS_CONFIG = {
-    'netbox_bgp': {
-        'device_ext_page': 'right',
-    }
-}
-EOF
-
-echo "🔹 Добавляем плагин в configuration.py"
-tee -a configuration/configuration.py <<'EOF'
-PLUGINS = ['netbox_bgp']
-EOF
-
-echo "🔹 Добавляем установку плагина в Dockerfile"
-sed -i '/^FROM netbox\/netbox:/a RUN pip install netbox-bgp' Dockerfile
-
-echo "🔹 Скачиваем образы и запускаем"
-docker compose build --no-cache
+echo "🔹 Скачиваем и запускаем контейнеры"
 docker compose pull
 docker compose up -d
 
+# Ждём, пока сервис netbox станет готов
+echo "🔹 Ожидаем запуска сервиса netbox..."
+until docker compose exec netbox netbox-status 2>/dev/null | grep -q "Database ready"; do
+  echo "⏳ Ждём инициализации базы данных..."
+  sleep 5
+done
+
+echo "🔹 Устанавливаем плагин netbox-bgp через pip внутри контейнера"
+docker compose exec -u root netbox pip install netbox-bgp
+
+echo "🔹 Активируем плагин в configuration.py"
+docker compose exec netbox sh -c "
+if ! grep -q \"netbox_bgp\" /opt/netbox/netbox/netbox/configuration.py; then
+    echo 'PLUGINS = [\"netbox_bgp\"]' >> /opt/netbox/netbox/netbox/configuration.py
+fi
+"
+
+echo "🔹 Перезапускаем netbox для применения плагина"
+docker compose restart netbox
+
 echo ""
-echo "✅ Выполнено. Проверьте статус:"
-echo "   docker compose ps"
-echo "   docker compose logs netbox"
+echo "✅ NetBox успешно запущен с плагином netbox-bgp"
+echo "   Проверить статус: docker compose ps"
+echo "   Логи: docker compose logs netbox"
 echo "🌐 Откройте: http://$(hostname -I | awk '{print $1}'):8000"
-echo "Создать пользователя: docker compose exec netbox /opt/netbox/netbox/manage.py createsuperuser"
-echo "Плагин BGP установлен и активирован"
+echo "🔧 Создать суперпользователя: docker compose exec netbox /opt/netbox/netbox/manage.py createsuperuser"
