@@ -140,7 +140,7 @@ rmon event 2 log trap public description CRITICAL(2) owner PMON@CRITICAL
 rmon event 3 log trap public description ERROR(3) owner PMON@ERROR
 rmon event 4 log trap public description WARNING(4) owner PMON@WARNING
 rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
-snmp-server community pacman group network-operator
+snmp-server community private group network-operator
 ntp server 172.16.1.1 use-vrf default
 
 ip route 0.0.0.0/0 172.16.1.1
