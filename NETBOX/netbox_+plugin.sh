@@ -1,52 +1,64 @@
 #!/bin/bash
 
-# === Запуск NetBox с плагином netbox-bgp ===
-# Совместимо с netbox-docker, учитывает отсутствие pip в PATH
+# === Минимальный запуск NetBox с плагином netbox-bgp ===
+# Официальные шаги + установка плагина через pip
 
 echo "🔹 Клонируем netbox-docker..."
 git clone -b release https://github.com/netbox-community/netbox-docker.git
 cd netbox-docker
 
-echo "🔹 Настраиваем порт 8000:8080"
-cat > docker-compose.override.yml <<'EOF'
+echo "🔹 Создаем кастомный Dockerfile для установки netbox-bgp..."
+tee Dockerfile.custom <<'EOF'
+FROM netboxcommunity/netbox:latest
+
+# Устанавливаем плагин netbox-bgp
+RUN pip install netbox-bgp
+EOF
+
+echo "🔹 Настраиваем docker-compose.override.yml для использования кастомного образа и порта 8000:8080..."
+tee docker-compose.override.yml <<'EOF'
 services:
   netbox:
+    build:
+      context: .
+      dockerfile: Dockerfile.custom
+    image: custom-netbox:latest
     ports:
       - "8000:8080"
 EOF
 
-echo "🔹 Настраиваем .env: ALLOWED_HOSTS и язык"
+echo "🔹 Создаем configuration.py с включенным плагином netbox-bgp..."
+mkdir -p configuration
+tee configuration/configuration.py <<'EOF'
+PLUGINS = ['netbox_bgp']
+ALLOWED_HOSTS = ['*']
+LANGUAGE_CODE = 'ru'
+EOF
+
+echo "🔹 Настраиваем volume для configuration.py в docker-compose.yml..."
+# Добавляем volume в существующую секцию netbox, не перезаписывая весь файл
+tee -a docker-compose.yml <<'EOF'
+services:
+  netbox:
+    volumes:
+      - ./configuration/configuration.py:/opt/netbox/netbox/netbox/configuration.py:ro
+EOF
+
+echo "🔹 Убеждаемся, что ALLOWED_HOSTS=* и LANGUAGE_CODE=ru в .env..."
 echo "ALLOWED_HOSTS=*" >> .env
 echo "LANGUAGE_CODE=ru" >> .env
 
-echo "🔹 Создаём requirements.txt для установки плагинов"
-cat > requirements.txt <<'EOF'
-netbox-bgp
-EOF
-
-echo "🔹 Запускаем контейнеры (автоматически подхватит requirements.txt)"
+echo "🔹 Скачиваем образы, собираем кастомный образ и запускаем..."
 docker compose pull
+docker compose build
 docker compose up -d
 
-#echo "🔹 Ожидаем готовности базы данных..."
-#until docker compose exec netbox netbox-status 2>/dev/null | grep -q "Database ready"; do
-  #echo "⏳ Ждём инициализации..."
-  #sleep 5
-#done
-
-echo "🔹 Добавляем плагин в configuration.py"
-docker compose exec netbox sh -c "
-if ! grep -q \"PLUGINS\" /opt/netbox/netbox/netbox/configuration.py; then
-    echo 'PLUGINS = [\"netbox_bgp\"]' >> /opt/netbox/netbox/netbox/configuration.py
-fi
-"
-
-echo "🔹 Перезапускаем netbox для активации плагина"
-docker compose restart netbox
+echo "🔹 Применяем миграции для плагина netbox-bgp..."
+docker compose exec netbox /opt/netbox/netbox/manage.py migrate
 
 echo ""
-echo "✅ NetBox запущен с плагином netbox-bgp"
-echo "   Проверь статус: docker compose ps"
-echo "   Логи: docker compose logs netbox"
-echo "🌐 Открой: http://$(hostname -I | awk '{print $1}'):8000"
-echo "🔧 Создай суперпользователя: docker compose exec netbox /opt/netbox/netbox/manage.py createsuperuser"
+echo "✅ Выполнено. Проверьте статус:"
+echo "   docker compose ps"
+echo "   docker compose logs netbox"
+echo "🌐 Откройте: http://$(hostname -I | awk '{print $1}'):8000"
+echo "Создать пользователя: docker compose exec netbox /opt/netbox/netbox/manage.py createsuperuser"
