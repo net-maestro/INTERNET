@@ -1,27 +1,31 @@
 ```
-                ! show version-running
-! 
-! %Error 140303: Invalid input detected at '^' marker.
-! show patch-running
-! 
-! %Error 140303: Invalid input detected at '^' marker.
+ZTE(config)#show running-config
 !<mim>
-!configuration saved at 13:59:37 Thu Oct 16 2025 by write zdb
-!configuration saved at 13:59:40 Thu Oct 16 2025 by write txt
-!last configuration change at 13:59:33 Thu Oct 16 2025 by service
+!configuration saved at 15:08:27 Thu Oct 16 2025 by write zdb
+!configuration saved at 15:08:29 Thu Oct 16 2025 by write txt
+!last configuration change at 15:13:51 Thu Oct 16 2025 by service
 !</mim>
 !<system-config>
 hostname ZTE
 banner incoming #
-GOLDENNET-OLT
- Support: noc@golden.net.ua
+Support: noc@golden.net.ua
  Commands:
    show:
    - show pon onu uncfg
+   - show gpon onu state
+   - show gpon onu baseinfo gpon_olt-1/1/1
+   - show gpon onu detail-info gpon_onu-1/1/1:1
+   - show gpon onu by sn CDTC1DFFB038
+   - show gpon onu distance gpon_onu-1/1/1:1
+   - show gpon remote-onu interface pon gpon_onu-1/1/1:1
+   - show gpon remote-onu equip gpon_onu-1/1/1:1
+   - show gpon remote-onu capability gpon_onu-1/1/1:1
+   - show gpon remote-onu service gpon_onu-1/1/1:1
+   - show gpon remote-onu mac gpon_onu-1/1/1:1 ethuni eth_0/1
+   - show gpon remote-onu dhcp-ip ethuni gpon_onu-1/1/1:1
    - show running-config-interface gpon_olt-1/1/1
    - show running-config-interface gpon_onu-1/1/1:1
    - show running-config-interface vport-1/1/1.1:1
-   - show gpon onu by sn CDTC1DFFB038
    - show interface gpon_olt-1/1/X
    - show running-config xpon
    - show running-config msan
@@ -30,10 +34,6 @@ GOLDENNET-OLT
    - show loopback-detection slot 1
    - show ip dhcp snooping dynamic database
    - show security port-protect
-   - show security mac-move-log
-   - show security mac-anti-spoofing configuration
-   mng:
-   - pon-onu-mng gpon_onu-1/1/1:1
 #
 !</system-config>
 !<if-intf>
@@ -125,17 +125,13 @@ system-user
   user-name service
     bind authentication-template 1
     bind authorization-template 1
-    password encrypted *21*Cd9FBNz0tjJfcP3wUqcjfVKnI31SpyN9UqcjffPT8eVs3oJf4twUS
-EnvYlmNAbXJqa3a2xEbSY7NWT9jfjIKtZzxfbErkSS6HjSRFdwzmXP9lRWsquH9TSPAQ9TUgprMGTJ7c
-ew9AdE+v57z
+    password encrypted *21*Cd9FBNz0tjJfcP3wUqcjfVKnI31SpyN9UqcjffPT8eVs3oJf4twUSEnvYlmNAbXJqa3a2xEbSY7NWT9jfjIKtZzxfbErkSS6HjSRFdwzmXP9lRWsquH9TSPAQ9TUgprMGTJ7cew9AdE+v57z
   $
   user-name zte
     once-password
     bind authentication-template 1
     bind authorization-template 1
-    password encrypted *21*Cd9FBNz0tjJfcP3wGK1oIRitaCEYrWghGK1oIWgEhNYkFvy7mdWXv
-oUGtPahwEXyqkRJ2W4fEbAyTxUOOjfdyIFSQWzMVKencKo3w3j6h5q9GSxPdPxzBrZbfFf02OCFdTP+u
-5OQpzPFn82l
+    password encrypted *21*Cd9FBNz0tjJfcP3wGK1oIRitaCEYrWghGK1oIWgEhNYkFvy7mdWXvoUGtPahwEXyqkRJ2W4fEbAyTxUOOjfdyIFSQWzMVKencKo3w3j6h5q9GSxPdPxzBrZbfFf02OCFdTP+u5OQpzPFn82l
   $
   strong-username min-len 3
   strong-password length 8 character-set-num 3
@@ -197,8 +193,7 @@ gpon
   profile tcont UNLIM type 4 maximum 9950000
 $
 wdm-pon
-  group profile Default channel-num 20 channel-space 100 up-base-freq 191300 dow
-n-base-freq 194100
+  group profile Default channel-num 20 channel-space 100 up-base-freq 191300 down-base-freq 194100
 $
 pon-onu-mng gpon_onu-1/1/1:1
   service vlan360 gemport 1 vlan 360
@@ -235,9 +230,7 @@ logging snmp
 $
 !</alarm>
 !<snmp>
-snmp-server community encrypted *31*RNZdUtVWwH0DwdHkiOMKDIjjCgyI4woMiOMKDChfkNip
-iLYIHc2IUKZ3BZjLhcrdewLWnXrrhPPIov77SkPRBbiQEKdyDqExnMqjFg== view DefaultView rw
- 
+snmp-server community encrypted *31*RNZdUtVWwH0DwdHkiOMKDIjjCgyI4woMiOMKDChfkNipiLYIHc2IUKZ3BZjLhcrdewLWnXrrhPPIov77SkPRBbiQEKdyDqExnMqjFg== view DefaultView rw
 snmp-server enable inform system
 snmp-server version v2c enable
 !</snmp>
@@ -269,7 +262,7 @@ interface xgei-1/4/1
   switchport vlan 1098,1676 tag
   loopback-detection disable
   loopback-detect active-detect enable
-  
+
 $
 interface xgei-1/4/2
   switchport mode trunk
@@ -341,22 +334,14 @@ ip dhcp snooping vlan 360
 ip dhcp snooping vlan 312
 ip dhcp snooping vlan 313
 ip dhcp snooping vlan 314
-traffic-profile DW50M cir 51200 cbs 65535 pir 51200 pbs 65535 color-mode blind p
-olicer-type enhanced_mef coupling-flag enable
-traffic-profile DW100M cir 102400 cbs 65535 pir 102400 pbs 65535 color-mode blin
-d policer-type enhanced_mef coupling-flag enable
-traffic-profile DW300M cir 307200 cbs 98304 pir 307200 pbs 98304 color-mode blin
-d policer-type enhanced_mef coupling-flag enable
-traffic-profile DW1G cir 1024000 cbs 114688 pir 1024000 pbs 114688 color-mode bl
-ind policer-type enhanced_mef coupling-flag enable
-traffic-profile DW500M cir 512000 cbs 98304 pir 512000 pbs 98304 color-mode blin
-d policer-type enhanced_mef coupling-flag enable
-traffic-profile DW2G5 cir 2560000 cbs 122880 pir 2560000 pbs 122880 color-mode b
-lind policer-type enhanced_mef coupling-flag enable
-traffic-profile DW5G cir 5120000 cbs 122880 pir 5120000 pbs 122880 color-mode bl
-ind policer-type enhanced_mef coupling-flag enable
-traffic-profile DW10G cir 10240000 cbs 131072 pir 10240000 pbs 131072 color-mode
- blind policer-type enhanced_mef coupling-flag enable
+traffic-profile DW50M cir 51200 cbs 65535 pir 51200 pbs 65535 color-mode blind policer-type enhanced_mef coupling-flag enable
+traffic-profile DW100M cir 102400 cbs 65535 pir 102400 pbs 65535 color-mode blind policer-type enhanced_mef coupling-flag enable
+traffic-profile DW300M cir 307200 cbs 98304 pir 307200 pbs 98304 color-mode blind policer-type enhanced_mef coupling-flag enable
+traffic-profile DW1G cir 1024000 cbs 114688 pir 1024000 pbs 114688 color-mode blind policer-type enhanced_mef coupling-flag enable
+traffic-profile DW500M cir 512000 cbs 98304 pir 512000 pbs 98304 color-mode blind policer-type enhanced_mef coupling-flag enable
+traffic-profile DW2G5 cir 2560000 cbs 122880 pir 2560000 pbs 122880 color-mode blind policer-type enhanced_mef coupling-flag enable
+traffic-profile DW5G cir 5120000 cbs 122880 pir 5120000 pbs 122880 color-mode blind policer-type enhanced_mef coupling-flag enable
+traffic-profile DW10G cir 10240000 cbs 131072 pir 10240000 pbs 131072 color-mode blind policer-type enhanced_mef coupling-flag enable
 qos queue-number 8
 quick-ping enable
 eth-switch max-frame-length 2000
