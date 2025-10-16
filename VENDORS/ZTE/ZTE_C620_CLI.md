@@ -78,18 +78,23 @@
 
 ### 🔹 ACL (пример создания)
 ```bash
-acl hybrid number 300
- rule 1 deny udp any eq 137 any any ingress any egress any
- rule 2 deny udp any eq 138 any any ingress any egress any
- rule 3 deny tcp any eq 135 any any ingress any egress any
- rule 100 permit any any any any ingress any egress any
+acl number 300
+ name CLIENT-IN-FILTER-300
+ rule 10 deny tcp any any eq 135 ipv4
+ rule 20 deny tcp any any eq 137 ipv4
+ rule 30 deny udp any any eq 137 ipv4
+ rule 40 deny tcp any any eq 138 ipv4
+ rule 50 deny udp any any eq 138 ipv4
+ rule 60 deny tcp any any eq 139 ipv4
+ rule 70 deny tcp any any eq 445 ipv4
+ rule 200 permit any any any ipv4
 ```
 > ⚠️ Обязательно завершать ACL правилом разрешения (`permit`), иначе весь трафик будет заблокирован.
 
 ### 🔹 Применение ACL
 ```bash
 interface gpon_onu-1/1/1:1
- ip access-group 300 ingress
+ ip access-group 300 in
 ```
 
 ### 🔹 Безопасность
