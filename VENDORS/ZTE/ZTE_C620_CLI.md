@@ -6,6 +6,45 @@
 - mng — управление, настройка и действия
 ---
 
+```
+Commands:
+   show:
+   - show pon onu uncfg
+   - show gpon onu state
+   - show gpon onu baseinfo gpon_olt-1/1/1
+   - show gpon onu detail-info gpon_onu-1/1/1:1
+   - show gpon onu by sn CDTC1DFFB038
+   - show gpon onu distance gpon_onu-1/1/1:1
+   - show gpon remote-onu interface pon gpon_onu-1/1/1:1
+   - show gpon remote-onu equip gpon_onu-1/1/1:1
+   - show gpon remote-onu capability gpon_onu-1/1/1:1
+   - show gpon remote-onu service gpon_onu-1/1/1:1
+   - show gpon remote-onu mac gpon_onu-1/1/1:1 ethuni eth_0/1
+   - show gpon remote-onu dhcp-ip ethuni gpon_onu-1/1/1:1
+   - show running-config-interface gpon_olt-1/1/1
+   - show running-config-interface gpon_onu-1/1/1:1
+   - show running-config-interface vport-1/1/1.1:1
+   - show interface gpon_olt-1/1/X
+   - show running-config xpon
+   - show running-config msan
+   - show running-config snmp
+   - show running-config alarm
+   - show loopback-detection slot 1
+   - show ip dhcp snooping dynamic database
+   - show security port-protect
+   - show security mac-move-log
+   - show security mac-anti-spoofing configuration
+   mng:
+   - interface gpon_olt-1/1/1
+     - onu 1 type F601 sn FHTT6A9B7700
+     - no onu 1
+   - pon-onu-mng gpon_onu-1/1/1:1
+     - reboot
+     - restore
+     - show this
+```
+
+
 ## 👁️‍🗨️ I. Команды `show` (просмотр)
 
 ### 🔹 ONU и PON
