@@ -41,6 +41,7 @@ Commands:
      - onu 1 type F601 sn FHTT6A9B7700
      - no onu 1
    - pon-onu-mng gpon_onu-1/1/1:1
+     - interface eth eth_0/1 state (lock, unlock) 
      - reboot
      - restore
      - show this
