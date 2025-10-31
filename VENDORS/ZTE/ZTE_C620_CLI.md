@@ -35,6 +35,7 @@ Commands:
    - show security mac-move-log
    - show security mac-anti-spoofing configuration
    - show security interface vlan-stormcontrol vport-1/1/1.1:1
+   - show gpon olt config gpon_olt-1/1/1
    mng:
    - interface gpon_olt-1/1/1
      - onu 1 type F601 sn FHTT6A9B7700
