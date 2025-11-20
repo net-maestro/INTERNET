@@ -1,9 +1,13 @@
-```
-ZTE(config)#show running-config
+                ! show version-running
+! 
+! %Error 140303: Invalid input detected at '^' marker.
+! show patch-running
+! 
+! %Error 140303: Invalid input detected at '^' marker.
 !<mim>
-!configuration saved at 15:08:27 Thu Oct 16 2025 by write zdb
-!configuration saved at 15:08:29 Thu Oct 16 2025 by write txt
-!last configuration change at 15:13:51 Thu Oct 16 2025 by service
+!configuration has not been saved since system starting
+!configuration was loaded by txt that saved at 16:43:13 Thu Nov 6 2025
+!last configuration change at 20:37:10 Mon Nov 17 2025 by NULL
 !</mim>
 !<system-config>
 hostname ZTE
@@ -71,11 +75,7 @@ interface gpon_olt-1/1/16
 $
 interface gpon_onu-1/1/1:1
 $
-interface gpon_onu-1/1/1:2
-$
 interface vport-1/1/1.1:1
-$
-interface vport-1/1/1.2:1
 $
 interface xgei-1/4/1
   description Uplink
@@ -125,13 +125,17 @@ system-user
   user-name service
     bind authentication-template 1
     bind authorization-template 1
-    password encrypted *21*Cd9FBNz0tjJfcP3wUqcjfVKnI31SpyN9UqcjffPT8eVs3oJf4twUSEnvYlmNAbXJqa3a2xEbSY7NWT9jfjIKtZzxfbErkSS6HjSRFdwzmXP9lRWsquH9TSPAQ9TUgprMGTJ7cew9AdE+v57z
+    password encrypted *21*Cd9FBNz0tjJfcP3wUqcjfVKnI31SpyN9UqcjffPT8eVs3oJf4twUS
+EnvYlmNAbXJqa3a2xEbSY7NWT9jfjIKtZzxfbErkSS6HjSRFdwzmXP9lRWsquH9TSPAQ9TUgprMGTJ7c
+ew9AdE+v57z
   $
   user-name zte
     once-password
     bind authentication-template 1
     bind authorization-template 1
-    password encrypted *21*Cd9FBNz0tjJfcP3wGK1oIRitaCEYrWghGK1oIWgEhNYkFvy7mdWXvoUGtPahwEXyqkRJ2W4fEbAyTxUOOjfdyIFSQWzMVKencKo3w3j6h5q9GSxPdPxzBrZbfFf02OCFdTP+u5OQpzPFn82l
+    password encrypted *21*Cd9FBNz0tjJfcP3wGK1oIRitaCEYrWghGK1oIWgEhNYkFvy7mdWXv
+oUGtPahwEXyqkRJ2W4fEbAyTxUOOjfdyIFSQWzMVKencKo3w3j6h5q9GSxPdPxzBrZbfFf02OCFdTP+u
+5OQpzPFn82l
   $
   strong-username min-len 3
   strong-password length 8 character-set-num 3
@@ -165,43 +169,42 @@ pon
   onu-type F601 gpon description F601 speed-mode gpon
   onu-type-if XGPONONU eth_0/1
   onu-type-if F601 eth_0/1
+  onu-profile gpon service vlan360
+    type PROFILE-DEFAULT
+    vlan port eth_0/1 mode tag vlan 360
+  $
+  onu-profile gpon service vlan311
+    type PROFILE-DEFAULT
+    vlan port eth_0/1 mode tag vlan 311
+  $
 $
 interface gpon_olt-1/1/1
   onu 1 type F601 sn FHTT6A9B7700
-  onu 2 type XGPONONU sn CDTC1DFFB038
   fiber-distance 0 200
   uncfg-onu-aging-time 30
 $
 interface gpon_onu-1/1/1:1
-  fec enable
-  tcont 1 profile T1G
-  gemport 1 tcont 1
-$
-interface gpon_onu-1/1/1:2
   name ********
   description ********
   fec enable
-  tcont 1 profile XG2500
+  tcont 1 profile T500M
   gemport 1 tcont 1
 $
 gpon
-  profile tcont T100M type 4 maximum 102400
-  profile tcont T500M type 4 maximum 512000
-  profile tcont T1G type 4 maximum 1024000
-  profile tcont XG2500 type 4 maximum 2488320
-  profile tcont XG5G type 4 maximum 5120000
-  profile tcont UNLIM type 4 maximum 9950000
+  profile tcont T100M type 4 maximum 95000
+  profile tcont T1000M type 4 maximum 990000
+  profile tcont T2500M type 4 maximum 2400000
+  profile tcont T5000M type 4 maximum 9900000
+  profile tcont T500M type 4 maximum 600000
 $
 wdm-pon
-  group profile Default channel-num 20 channel-space 100 up-base-freq 191300 down-base-freq 194100
+  group profile Default channel-num 20 channel-space 100 up-base-freq 191300 dow
+n-base-freq 194100
 $
 pon-onu-mng gpon_onu-1/1/1:1
-  service vlan360 gemport 1 vlan 360
-  vlan port eth_0/1 mode tag vlan 360
-$
-pon-onu-mng gpon_onu-1/1/1:2
-  service vlan360 gemport 1 vlan 360
-  vlan port eth_0/1 mode tag vlan 360
+  loop-detect ethuni eth_0/1 enable
+  service vlan311 gemport 1 vlan 311
+  vlan port eth_0/1 mode tag vlan 311
 $
 !</xpon>
 !<alarm>
@@ -230,7 +233,8 @@ logging snmp
 $
 !</alarm>
 !<snmp>
-snmp-server community encrypted *31*RNZdUtVWwH0DwdHkiOMKDIjjCgyI4woMiOMKDChfkNipiLYIHc2IUKZ3BZjLhcrdewLWnXrrhPPIov77SkPRBbiQEKdyDqExnMqjFg== view DefaultView rw
+snmp-server community encrypted *31*RNZdUtVWwH0DwdHkGmYSMhpmEjIaZhIyGmYSMqvXYv2q
+Bl3JaaQ4tKNvsOvR1MLTx4fAfLuBZnnwSlKBT1p3TBOUoqobCClcVUblDQ== view AllView rw 
 snmp-server enable inform system
 snmp-server version v2c enable
 !</snmp>
@@ -245,15 +249,11 @@ interface gpon_olt-1/1/1
   no shutdown
 $
 interface vport-1/1/1.1:1
-  service-port 1 user-vlan 360 vlan 360
+  service-port 1 user-vlan 311 vlan 311 egress 500M
   security max-mac-learn 4
-  qos traffic-shaping DW300M
-  ip access-group 300 in
-$
-interface vport-1/1/1.2:1
-  service-port 1 user-vlan 360 vlan 360
-  security max-mac-learn 4
-  qos traffic-shaping DW500M
+  security vlan-stormcontrol unknowncast vlan 311 rate 20
+  security vlan-stormcontrol multicast vlan 311 rate 30
+  security vlan-stormcontrol broadcast vlan 311 rate 150
   ip access-group 300 in
 $
 interface xgei-1/4/1
@@ -262,7 +262,7 @@ interface xgei-1/4/1
   switchport vlan 1098,1676 tag
   loopback-detection disable
   loopback-detect active-detect enable
-
+  
 $
 interface xgei-1/4/2
   switchport mode trunk
@@ -294,27 +294,13 @@ acl number 300
   rule 50 deny udp any any eq 138 ipv4
   rule 60 deny tcp any any eq 139 ipv4
   rule 70 deny tcp any any eq 445 ipv4
-  rule 200 permit any any any ipv4
+  rule 200 permit any any any any
 $
 loopback-detection enable
 loopback-detection active-detect disable
 tpid outer 0x8100,0x88a8 inner 0x8100
 vlan list 1,311-314,360,502
 vlan list 1098,1676
-$
-vlan 502
-  name GOLDENNET
-$
-vlan 1
-$
-vlan 1098
-  name tr_simnet1098
-$
-vlan 360
-  name BorExt360
-$
-vlan 1676
-  name tr_simnet1676
 $
 vlan 311
   name lvivskiy311
@@ -328,24 +314,38 @@ $
 vlan 314
   name lvivskiy314
 $
+vlan 360
+  name BorExt360
+$
+vlan 502
+  name GOLDENNET
+$
+vlan 1098
+  name tr_simnet1098
+$
+vlan 1676
+  name tr_simnet1676
+$
+vlan 1
+$
 ip dhcp snooping enable
 ip dhcp snooping vlan 311
 ip dhcp snooping vlan 360
 ip dhcp snooping vlan 312
 ip dhcp snooping vlan 313
 ip dhcp snooping vlan 314
-traffic-profile DW50M cir 51200 cbs 65535 pir 51200 pbs 65535 color-mode blind policer-type enhanced_mef coupling-flag enable
-traffic-profile DW100M cir 102400 cbs 65535 pir 102400 pbs 65535 color-mode blind policer-type enhanced_mef coupling-flag enable
-traffic-profile DW300M cir 307200 cbs 98304 pir 307200 pbs 98304 color-mode blind policer-type enhanced_mef coupling-flag enable
-traffic-profile DW1G cir 1024000 cbs 114688 pir 1024000 pbs 114688 color-mode blind policer-type enhanced_mef coupling-flag enable
-traffic-profile DW500M cir 512000 cbs 98304 pir 512000 pbs 98304 color-mode blind policer-type enhanced_mef coupling-flag enable
-traffic-profile DW2G5 cir 2560000 cbs 122880 pir 2560000 pbs 122880 color-mode blind policer-type enhanced_mef coupling-flag enable
-traffic-profile DW5G cir 5120000 cbs 122880 pir 5120000 pbs 122880 color-mode blind policer-type enhanced_mef coupling-flag enable
-traffic-profile DW10G cir 10240000 cbs 131072 pir 10240000 pbs 131072 color-mode blind policer-type enhanced_mef coupling-flag enable
+traffic-profile 100M cir 95000 cbs 65535 pir 95000 pbs 65535 color-mode blind po
+licer-type enhanced_mef coupling-flag enable
+traffic-profile 1000M cir 990000 cbs 114688 pir 990000 pbs 114688 color-mode bli
+nd policer-type enhanced_mef coupling-flag enable
+traffic-profile 2500M cir 2400000 cbs 122880 pir 2400000 pbs 122880 color-mode b
+lind policer-type enhanced_mef coupling-flag enable
+traffic-profile 5000M cir 9900000 cbs 131072 pir 9900000 pbs 131072 color-mode b
+lind policer-type enhanced_mef coupling-flag enable
+traffic-profile 500M cir 550000 cbs 98304 pir 550000 pbs 98304 color-mode blind 
+policer-type enhanced_mef coupling-flag enable
 qos queue-number 8
 quick-ping enable
 eth-switch max-frame-length 2000
 discard-packet-mode disable
 !</MSAN>
-
-```
