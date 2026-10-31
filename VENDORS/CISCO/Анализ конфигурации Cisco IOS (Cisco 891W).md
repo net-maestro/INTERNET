@@ -16,7 +16,7 @@ service timestamps debug datetime msec localtime show-timezone
 service timestamps log datetime localtime show-timezone
 service password-encryption
 service sequence-numbers
-hostname KU_LEV
+hostname test
 ```
 * **`no service pad`**: Отключает службу PAD (Packet Assembler/Disassembler) для X.25, что является стандартом безопасности для закрытия неиспользуемых сервисов.
 * **`service tcp-keepalives...`**: Включает отправку TCP-keepalive пакетов для обнаружения "мертвых" соединений.
@@ -40,7 +40,7 @@ vrf definition SL
  exit-address-family
 ```
 * **`boot system`**: Задает порядок загрузки образов. Если основной (`159-3.M5`) поврежден, роутер загрузит резервный (`157-3.M4a`). Отличная практика отказоустойчивости.
-* **`vrf definition SL`**: Создает VRF (Virtual Routing and Forwarding) с именем `SL` (StarLink). 
+* **`vrf definition testvrf`**: Создает VRF (Virtual Routing and Forwarding) с именем `SL` (StarLink). 
   * **`rd` и `route-target`**: Хотя это VRF-Lite (без MPLS), эти параметры заданы. В чистом L3 VRF-Lite они не обязательны, но могут использоваться для совместимости или будущей миграции на MPLS.
 
 ---
@@ -53,8 +53,8 @@ aaa authentication login userlist local
 aaa authorization exec default local none 
 aaa session-id common
 enable secret 9 **************************************
-username cad privilege 15 password ************
-username fad privilege 15 password ************
+username user1 privilege 15 password ************
+username user2 privilege 15 password ************
 ```
 * **`aaa new-model`**: Включает современную модель AAA.
 * **`aaa authentication ... local`**: Задает аутентификацию через локальную базу данных пользователей.
@@ -125,18 +125,18 @@ interface FastEthernet4
 ```
 * Внешний интерфейс. Включен `ip virtual-reassembly in` (обязательно для корректной работы IPsec и NAT при фрагментации пакетов). `ip inspect` (CBAC) обеспечивает stateful фильтрацию исходящего трафика.
 
-### WAN StarLink (VLAN 2)
+### WAN testuplink2 (VLAN 2)
 ```cisco
 interface Vlan2
  vrf forwarding SL
- ip address 192.168.1.12 255.255.255.0
+ ip address 192.168.1.2 255.255.255.0
  ip nat outside
 ```
-* Интерфейс подключен к модему StarLink и помещен в изолированную таблицу маршрутизации `VRF SL`.
+* Интерфейс подключен к модему StarLink и помещен в изолированную таблицу маршрутизации `VRF testvrf`.
 
 ### Туннели (DMVPN и Point-to-Point)
 * **Tunnel1 / Tunnel2**: DMVPN (GRE Multipoint + NHRP + EIGRP). По умолчанию находятся в состоянии `shutdown`. Управляются через EEM при падении основного канала.
-* **Tunnel10 / Tunnel20**: Классические point-to-point туннели (GRE over IPsec) с использованием IKEv2 (`virtual-template 1`), направленные на конкретные публичные IP-адреса хабов (`195.**.**.69` / `195.**.**.70`).
+* **Tunnel10 / Tunnel20**: Классические point-to-point туннели (GRE over IPsec) с использованием IKEv2 (`virtual-template 1`), направленные на конкретные публичные IP-адреса хабов (`194.**.**.33` / `194.**.**.44`).
 
 ---
 
@@ -144,7 +144,7 @@ interface Vlan2
 ```cisco
 router eigrp 1
  bfd all-interfaces
- network 10.65.0.0 0.0.1.255
+ network 10.5.5.0 0.0.1.255
  passive-interface default
  no passive-interface Tunnel1
 !
@@ -164,7 +164,7 @@ track 1 ip sla 1 reachability
 ip nat inside source route-map NAT_ISP1 interface FastEthernet4 overload
 ip nat inside source route-map NAT_ISP3 interface Vlan2 overload
 !
-route-map SL permit 10
+route-map testvrf permit 10
  match ip address 101
  set ip vrf SL next-hop 192.168.1.1
 ```
@@ -176,7 +176,7 @@ route-map SL permit 10
 ## 9. Списки доступа (ACLs)
 * **`INETIN`**: Фильтрует входящий трафик на WAN-интерфейсах. Разрешает только необходимый трафик: DHCP, IKE (isakmp/non500), ICMP, ESP/AHP (для VPN), и SSH с доверенных подсетей. Запрещает все остальное (неявный `deny ip any any` в конце).
 * **`TUNIN` / `TUNOUT`**: Фильтруют трафик, проходящий через туннели. Разрешают управляющие протоколы (SSH, RDP, HTTPS), EIGRP, NHRP и специфичные бизнес-приложения (порты 4899, 6129, 37777 и т.д.).
-* **`BLOCK`**: Применяется к Vlan1. Разрешает хосту `.65` полный доступ, но блокирует доступ всей сети к определенным внешним IP-адресам (`195.**.**.94/95`).
+* **`BLOCK`**: Применяется к Vlan1. Разрешает хосту `.65` полный доступ, но блокирует доступ всей сети к определенным внешним IP-адресам (`194.**.**.`).
 
 ---
 
@@ -211,9 +211,9 @@ event manager applet ISP_1_UP
 
 ## 11. Системные службы (SNMP, Logging, NTP)
 ```cisco
-logging host 10.52.15.10
+logging host 10.2.5.10
 snmp-server community public RO
-ntp server 10.65.0.1
+ntp server 10.2.5.1
 ```
 * **Logging**: Отправка syslog на центральный сервер.
 * **SNMP**: Включен с community строкой только для чтения (RO). *Рекомендация: строка `public` является стандартом де-факто и небезопасна. Следует использовать SNMPv3 с аутентификацией и шифрованием.*
@@ -227,6 +227,6 @@ ntp server 10.65.0.1
 2. **Безопасность SNMP**: Замените `snmp-server community public` на SNMPv3 или хотя бы на сложную строку сообщества, если v3 не поддерживается мониторингом.
 3. **Упрощение отказоустойчивости**: Рассмотрите замену скриптов EEM `ISP_1_DOWN`/`UP` на **Floating Static Routes** с отслеживанием IP SLA. Это стандартный, более стабильный и предсказуемый способ резервирования каналов в Cisco IOS.
 4. **Очистка криптографии**: Если все спицы (spokes) поддерживают IKEv2, удалите разделы `crypto isakmp` (IKEv1) для уменьшения поверхности атаки.
-5. **VRF-Lite**: Параметры `rd` и `route-target` в VRF `SL` избыточны, если не используется MPLS. Их можно удалить для упрощения, оставив только `vrf forwarding SL` на интерфейсе.
+5. **VRF-Lite**: Параметры `rd` и `route-target` в VRF `testvrf` избыточны, если не используется MPLS. Их можно удалить для упрощения, оставив только `vrf forwarding testvrf` на интерфейсе.
 
 --- 
